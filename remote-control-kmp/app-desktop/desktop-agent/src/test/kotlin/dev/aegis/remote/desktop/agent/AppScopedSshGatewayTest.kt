@@ -1,10 +1,12 @@
 package dev.aegis.remote.desktop.agent
 
+import java.net.ConnectException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
+import java.net.SocketTimeoutException
 import kotlin.concurrent.thread
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,7 +15,7 @@ import kotlin.test.assertFalse
 
 class AppScopedSshGatewayTest {
     @Test
-    fun `exiting closes active streams and refuses new connections while backend stays local`() {
+    fun `exiting closes active streams and refuses new access while backend stays local`() {
         ServerSocket(0, 8, InetAddress.getByName("127.0.0.1")).use { backend ->
             thread(isDaemon = true) {
                 backend.accept().use { socket ->
@@ -34,9 +36,8 @@ class AppScopedSshGatewayTest {
                     assertEquals(42, client.getInputStream().read())
                     gateway.close()
                     assertStreamClosed(client)
-                    assertFailsWith<java.net.ConnectException> {
-                        Socket().use { it.connect(InetSocketAddress("127.0.0.2", backend.localPort), 1_000) }
-                    }
+                    assertNewConnectionClosed(backend.localPort)
+                    assertNoPendingBackendConnection(backend)
                     assertFalse(backend.isClosed)
                 }
             }
@@ -76,12 +77,30 @@ class AppScopedSshGatewayTest {
             ServerSocket(backend.localPort, 8, InetAddress.getByName("127.0.0.3")).use {
                 AppScopedSshGateway { listOf(InetAddress.getByName("127.0.0.2"), InetAddress.getByName("127.0.0.3")) }.use { gateway ->
                     assertFailsWith<IllegalStateException> { gateway.start(backend.localPort) }
-                    assertFailsWith<java.net.ConnectException> {
-                        Socket().use { it.connect(InetSocketAddress("127.0.0.2", backend.localPort), 1_000) }
-                    }
+                    assertNewConnectionClosed(backend.localPort)
+                    assertNoPendingBackendConnection(backend)
                 }
             }
         }
+    }
+
+    private fun assertNewConnectionClosed(port: Int) {
+        Socket().use { client ->
+            try {
+                client.connect(InetSocketAddress("127.0.0.2", port), 1_000)
+            } catch (_: ConnectException) {
+                return
+            }
+            // A queued TCP handshake may finish while another thread exits accept().
+            // It must yield EOF/reset within the bound; data or a read timeout is a failure.
+            client.soTimeout = 2_000
+            assertStreamClosed(client)
+        }
+    }
+
+    private fun assertNoPendingBackendConnection(backend: ServerSocket) {
+        backend.soTimeout = 200
+        assertFailsWith<SocketTimeoutException> { backend.accept().use { } }
     }
 
     private fun assertStreamClosed(client: Socket) {
