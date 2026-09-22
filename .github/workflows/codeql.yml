@@ -1,0 +1,39 @@
+name: CodeQL
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 5 * * 2"
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: github/codeql-action/init@v4
+        with:
+          # C# is limited to the standalone windows-uninstaller tool and is not
+          # compiled by Gradle autobuild, which makes csharp extraction fail.
+          languages: java-kotlin
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Build Android, desktop, and relay sources for CodeQL
+        working-directory: remote-control-kmp
+        shell: pwsh
+        run: >-
+          ./gradlew.bat --no-daemon --dependency-verification strict
+          :app-android:compileReleaseKotlin
+          :app-desktop:desktop-main:compileKotlin
+          :relay-server:relay-main:compileKotlin
+          --console=plain
+      - uses: github/codeql-action/analyze@v4

@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:AndroidDeviceIdentityStore.kt$AndroidCryptoCapabilityProbe$identity.any { it.algorithm == IdentitySignatureAlgorithm.ECDSA_P256_SHA256 &amp;&amp; it.supported } &amp;&amp; ecdh.supported &amp;&amp; aes.supported</ID>
+    <ID>ComplexCondition:AndroidDeviceIdentityStore.kt$AndroidCryptoCapabilityProbe$identity.any { it.algorithm == IdentitySignatureAlgorithm.ED25519 &amp;&amp; it.supported } &amp;&amp; x25519.supported &amp;&amp; chacha.supported</ID>
+    <ID>ComplexCondition:TerminalUi.kt$!terminal.connected || terminal.connecting || size.width &lt;= 0 || size.height &lt;= 0</ID>
+    <ID>ComplexCondition:UdpStunProbe.kt$UdpStunProbe$payload[4] != MagicCookie0 || payload[5] != MagicCookie1 || payload[6] != MagicCookie2 || payload[7] != MagicCookie3</ID>
+    <ID>CyclomaticComplexMethod:AndroidDeviceIdentityStore.kt$AndroidDeviceIdentityStore$private fun readMetadata(): IdentityMetadata?</ID>
+    <ID>CyclomaticComplexMethod:AndroidHomeViewModel.kt$AndroidHomeViewModel$fun dispatch(action: AndroidHomeAction)</ID>
+    <ID>CyclomaticComplexMethod:AndroidSftpClient.kt$AndroidSftpSession$override fun upload( localPath: String, remotePath: String, ): Flow&lt;TransferProgress></ID>
+    <ID>CyclomaticComplexMethod:LiveQrScanner.kt$@Composable private fun CameraQrPreview( onQrCode: (String) -> Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>CyclomaticComplexMethod:PairingUi.kt$@Composable internal fun PairingProgressCard( stage: LocalPairingStage, requestSubmitted: Boolean, message: String?, onRetry: (() -> Unit)?, )</ID>
+    <ID>CyclomaticComplexMethod:RelayUi.kt$@Composable internal fun RelayScreen( profile: DeviceProfile, relay: RelayUiState, dispatch: (AndroidHomeAction) -> Unit, )</ID>
+    <ID>CyclomaticComplexMethod:RemoteUi.kt$@Composable internal fun TrackpadSurface( enabled: Boolean, dragLocked: Boolean, modifier: Modifier = Modifier, dispatch: (AndroidHomeAction) -> Unit, )</ID>
+    <ID>CyclomaticComplexMethod:SftpUi.kt$@Composable internal fun SftpScreen( sftp: SftpUiState, dispatch: (AndroidHomeAction) -> Unit, )</ID>
+    <ID>CyclomaticComplexMethod:TerminalUi.kt$@Composable internal fun TerminalScreen( terminal: TerminalUiState, dispatch: (AndroidHomeAction) -> Unit, )</ID>
+    <ID>FunctionNaming:LiveQrScanner.kt$@Composable fun LiveQrScanner( onQrCode: (String) -> Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:LiveQrScanner.kt$@Composable private fun CameraPermissionCard( previouslyDenied: Boolean, onRequestPermission: () -> Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:LiveQrScanner.kt$@Composable private fun CameraQrPreview( onQrCode: (String) -> Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:OnyxTheme.kt$@Composable fun AegisTheme(content: @Composable () -> Unit)</ID>
+    <ID>LargeClass:AndroidHomeViewModel.kt$AndroidHomeViewModel : AndroidViewModel</ID>
+    <ID>LargeClass:AndroidSftpClient.kt$AndroidSftpSession : SftpSession</ID>
+    <ID>LongMethod:AndroidHomeViewModel.kt$AndroidHomeViewModel$fun dispatch(action: AndroidHomeAction)</ID>
+    <ID>LongMethod:LiveQrScanner.kt$@Composable private fun CameraQrPreview( onQrCode: (String) -> Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>LongMethod:PairingUi.kt$@Composable internal fun AddProfileForm( draft: AddProfileDraft, errorMessage: String?, dispatch: (AndroidHomeAction) -> Unit, )</ID>
+    <ID>LongMethod:RelayUi.kt$@Composable internal fun RelayScreen( profile: DeviceProfile, relay: RelayUiState, dispatch: (AndroidHomeAction) -> Unit, )</ID>
+    <ID>LongMethod:RemoteUi.kt$@Composable internal fun RemoteInputScreen( remoteInput: RemoteInputUiState, dispatch: (AndroidHomeAction) -> Unit, )</ID>
+    <ID>LongMethod:SftpUi.kt$@Composable internal fun SftpScreen( sftp: SftpUiState, dispatch: (AndroidHomeAction) -> Unit, )</ID>
+    <ID>LongMethod:TerminalUi.kt$@Composable internal fun TerminalScreen( terminal: TerminalUiState, dispatch: (AndroidHomeAction) -> Unit, )</ID>
+    <ID>LoopWithTooManyJumpStatements:AndroidLocalPairingClient.kt$while</ID>
+    <ID>LoopWithTooManyJumpStatements:AndroidSshTerminalClient.kt$for</ID>
+    <ID>LoopWithTooManyJumpStatements:AndroidWebRtcViewerSession.kt$AndroidWebRtcViewerSession$while</ID>
+    <ID>MatchingDeclarationName:AndroidRtcIceStatsMapper.kt$AndroidRtcStatsEntry</ID>
+    <ID>MatchingDeclarationName:OnyxTheme.kt$OnyxColors</ID>
+    <ID>MaxLineLength:AndroidHomeViewModel.kt$"Visual plan ready. StartVisualSession preview payload prepared; pair locally or create/approve a relay session before sending over a real channel."</ID>
+    <ID>MaxLineLength:AndroidRouteHealthCheckerTest.kt$FakeRelayClient$override suspend fun registerDevice(registration: RelayDeviceRegistration): RelayRegistration</ID>
+    <ID>MaxLineLength:AndroidWakeOnLanSender.kt$AndroidWakeOnLanSender$message = "Magic packet sent to ${config.broadcastAddress}:${config.port}. Wake-on-LAN may still depend on BIOS, OS, router, VPN, or LAN broadcast support."</ID>
+    <ID>MaxLineLength:RemoteUi.kt$Button(onClick = { dispatch(AndroidHomeAction.CloseVisual) }, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = OnyxColors.Error), shape = RoundedCornerShape(999.dp), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.visual_close)) }</ID>
+    <ID>MaxLineLength:RemoteUi.kt$Button(onClick = { dispatch(AndroidHomeAction.PrepareClipboardDataChannelPayload) }, enabled = visual.streaming &amp;&amp; !clipboard.busy, colors = ButtonDefaults.buttonColors(containerColor = OnyxColors.PrimaryContainer), shape = RoundedCornerShape(999.dp), modifier = Modifier.weight(1f)) { Text(stringResource(R.string.clipboard_send_pc)) }</ID>
+    <ID>MaxLineLength:RemoteUi.kt$Button(onClick = { dispatch(AndroidHomeAction.PrepareTextInputPayload) }, enabled = visual.streaming &amp;&amp; !remoteInput.busy &amp;&amp; remoteInput.text.isNotEmpty(), colors = ButtonDefaults.buttonColors(containerColor = OnyxColors.PrimaryContainer), shape = RoundedCornerShape(999.dp), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.send_text)) }</ID>
+    <ID>MaxLineLength:RemoteUi.kt$Button(onClick = { dispatch(AndroidHomeAction.PrepareVisualSession) }, enabled = !visual.busy, colors = ButtonDefaults.buttonColors(containerColor = OnyxColors.PrimaryContainer), shape = RoundedCornerShape(999.dp), modifier = Modifier.fillMaxWidth()) { Text(stringResource(if (visual.busy) R.string.relay_connecting else R.string.visual_reconnect)) }</ID>
+    <ID>MaxLineLength:RemoteUi.kt$Button(onClick = { dispatch(AndroidHomeAction.ReadLocalClipboard) }, enabled = !clipboard.busy, colors = ButtonDefaults.buttonColors(containerColor = OnyxColors.Container), shape = RoundedCornerShape(999.dp), modifier = Modifier.weight(1f)) { Text(stringResource(R.string.clipboard_read_phone)) }</ID>
+    <ID>MaxLineLength:RemoteUi.kt$FullscreenDockButton</ID>
+    <ID>MaxLineLength:RemoteUi.kt$FullscreenDockButton(stringResource(R.string.trackpad_left_click), Icons.Outlined.Mouse, modifier = Modifier.weight(1f)) { dispatch(AndroidHomeAction.TrackpadClick(MouseButtonType.Left)) }</ID>
+    <ID>MaxLineLength:RemoteUi.kt$FullscreenDockButton(stringResource(R.string.trackpad_right_click), Icons.Outlined.Mouse, modifier = Modifier.weight(1f)) { dispatch(AndroidHomeAction.TrackpadClick(MouseButtonType.Right)) }</ID>
+    <ID>MaxLineLength:RemoteUi.kt$FullscreenDockButton(stringResource(R.string.visual_tab_keyboard), Icons.Outlined.Keyboard, active = keyboardVisible, modifier = Modifier.weight(1f)) { keyboardVisible = !keyboardVisible }</ID>
+    <ID>MaxLineLength:RemoteUi.kt$FullscreenDockButton(stringResource(R.string.visual_tab_trackpad), Icons.Outlined.TouchApp, active = !keyboardVisible, modifier = Modifier.weight(1f)) { keyboardVisible = false }</ID>
+    <ID>MaxLineLength:RemoteUi.kt$InfoBanner(stringResource(R.string.visual_input_disabled_title), stringResource(R.string.visual_input_disabled_body), Icons.Outlined.Lock)</ID>
+    <ID>MaxLineLength:RemoteUi.kt$OutlinedTextField(value = clipboard.text, onValueChange = { dispatch(AndroidHomeAction.UpdateClipboardText(it)) }, label = { Text(stringResource(R.string.clipboard_text)) }, minLines = 3, modifier = Modifier.fillMaxWidth().weight(1f))</ID>
+    <ID>MaxLineLength:RemoteUi.kt$OutlinedTextField(value = remoteInput.text, onValueChange = { dispatch(AndroidHomeAction.UpdateRemoteInputText(it)) }, label = { Text(stringResource(R.string.type_on_pc)) }, modifier = Modifier.fillMaxWidth())</ID>
+    <ID>MaxLineLength:SftpUi.kt$Icon(Icons.Outlined.Home, contentDescription = stringResource(R.string.sftp_home), tint = OnyxColors.OnSurfaceVariant, modifier = Modifier.size(18.dp))</ID>
+    <ID>MaxLineLength:SftpUi.kt$Icon(if (expanded) Icons.Outlined.ExpandMore else Icons.Outlined.ExpandLess, stringResource(R.string.sftp_toggle_transfers), tint = OnyxColors.OnSurfaceVariant)</ID>
+    <ID>MaxLineLength:SftpUi.kt$SftpActionBar</ID>
+    <ID>MaxLineLength:SftpUi.kt$Text(if (active) stringResource(R.string.sftp_one_active) else stringResource(R.string.sftp_none_active), color = OnyxColors.OnSurfaceVariant, fontSize = 12.sp)</ID>
+    <ID>MaxLineLength:SftpUi.kt$modifier = Modifier.widthIn(max = 132.dp).border(1.dp, OnyxColors.Hairline, RoundedCornerShape(6.dp)).padding(horizontal = 5.dp, vertical = 2.dp)</ID>
+    <ID>ThrowsCount:AndroidDeviceIdentityStore.kt$AndroidDeviceIdentityStore$private fun loadIdentity(metadata: IdentityMetadata): LocalDeviceIdentity</ID>
+    <ID>ThrowsCount:AndroidDeviceIdentityStore.kt$AndroidDeviceIdentityStore$private fun readMetadata(): IdentityMetadata?</ID>
+    <ID>ThrowsCount:AndroidHomeViewModel.kt$AndroidHomeViewModel$fun dispatch(action: AndroidHomeAction)</ID>
+    <ID>ThrowsCount:AndroidLocalPairingClient.kt$internal fun normalizeLocalPairingBaseUrl(rawUrl: String): URI</ID>
+    <ID>ThrowsCount:PairingQrTransport.kt$PairingQrTransport$fun decode(raw: String): String</ID>
+    <ID>TooGenericExceptionCaught:AndroidDeviceIdentityStore.kt$AndroidCryptoCapabilityProbe$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:AndroidDeviceIdentityStore.kt$AndroidDeviceIdentityStore$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:AndroidDeviceIdentityStore.kt$AndroidDeviceIdentityStore$error: RuntimeException</ID>
+    <ID>TooGenericExceptionCaught:AndroidDeviceIdentityStore.kt$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:AndroidLocalPairingClient.kt$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AndroidLocalPairingClient.kt$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AndroidRouteHealthChecker.kt$AndroidRouteHealthChecker$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:AndroidSecureCredentialStore.kt$AndroidSecureCredentialStore$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AndroidSftpClient.kt$AndroidSftpClient$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AndroidSftpClient.kt$AndroidSftpSession$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AndroidSshTerminalClient.kt$AndroidSshTerminalClient$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AndroidSshTerminalClient.kt$AndroidSshTerminalSession$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AndroidWebRtcViewerSession.kt$AndroidWebRtcViewerSession$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PinnedSshClient.kt$AndroidSshSecurityProvider$error: Throwable</ID>
+    <ID>UseCheckOrError:AndroidWebRtcViewerSession.kt$AndroidWebRtcViewerSession$throw IllegalStateException("TURN credential is unavailable or expired")</ID>
+    <ID>UseRequire:AndroidHomeViewModel.kt$AndroidHomeViewModel$throw IllegalArgumentException("Enter text before preparing a text input payload.")</ID>
+    <ID>UseRequire:PairingQrTransport.kt$PairingQrTransport$throw IllegalArgumentException("QRP-7103: Pairing QR transport is too large")</ID>
+    <ID>UseRequire:PairingQrTransport.kt$PairingQrTransport$throw IllegalArgumentException("QRP-7103: Pairing QR transport is truncated")</ID>
+    <ID>UseRequire:PairingQrTransport.kt$PairingQrTransport$throw IllegalArgumentException("QRP-7103: Pairing QR transport requires an unsupported dictionary")</ID>
+  </CurrentIssues>
+</SmellBaseline>

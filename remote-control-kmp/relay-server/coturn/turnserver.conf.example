@@ -1,0 +1,24 @@
+# Aegis production coturn baseline. Replace every example value through a
+# secret manager/deployment template; never commit the real shared secret.
+fingerprint
+use-auth-secret
+static-auth-secret=REPLACE_FROM_SECRET_MANAGER
+realm=turn.example.com
+server-name=turn.example.com
+
+listening-port=3478
+tls-listening-port=5349
+min-port=49160
+max-port=49200
+
+cert=/run/secrets/turn_fullchain_pem
+pkey=/run/secrets/turn_private_key_pem
+no-cli
+no-multicast-peers
+stale-nonce=600
+total-quota=1200
+user-quota=12
+
+# Set external-ip/public-to-private mapping in the deployment environment when
+# coturn is behind one-to-one NAT. Restrict administration and metrics at the
+# network layer; expose only TURN listener and relay ranges to clients.

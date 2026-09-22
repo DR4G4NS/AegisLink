@@ -1,0 +1,26 @@
+.gradle/
+build/
+**/build/
+**/bin/
+**/obj/
+# The SQLDelight worker deliberately uses the declared Java package
+# dev.aegis.remote.build; keep that source tree trackable.
+!tools/sqldelight-worker-init/src/main/java/dev/aegis/remote/build/
+!tools/sqldelight-worker-init/src/main/java/dev/aegis/remote/build/**
+.idea/
+*.iml
+local.properties
+out/
+dist/
+*.apk
+*.aab
+*.exe
+*.msi
+*.deb
+*.rpm
+*.pdb
+packaging/arch/pkg/
+packaging/arch/src/
+packaging/arch/*.pkg.tar.*
+.codex-*.out
+.codex-*.err

@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:Main.kt$fun main()</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun ActivityScreen( state: DesktopAgentState, approve: (String) -> Unit, reject: (String) -> Unit, approveRelay: (String) -> Unit, rejectRelay: (String) -> Unit, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun AegisMark(active: Boolean)</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun CapabilityCard( state: DesktopAgentState, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun CapabilityDataRow( label: String, status: CapabilityStatus, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun ConnectionOverviewCard( state: DesktopAgentState, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun DataField( label: String, value: String, monospace: Boolean = false, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun DeviceAvatar( name: String, active: Boolean, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun EmptyState( title: String, message: String, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun LanguageChoice( label: String, selected: Boolean, onClick: () -> Unit, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun LocalApprovalRow( request: DesktopPairingRequest, approve: (String) -> Unit, reject: (String) -> Unit, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun LogRow(log: AgentLogEntry)</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun ManualConnectionCard(state: DesktopAgentState)</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun ManualConnectionDataField( label: String, data: ManualConnectionValue, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun MetricCard( label: String, value: String, supporting: String, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun NavigationGlyph( section: DesktopSection, selected: Boolean, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun NavigationItem( section: DesktopSection, selected: Boolean, badge: Int, onClick: () -> Unit, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun OnyxTheme(content: @Composable () -> Unit)</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun PageHeader( section: DesktopSection, state: DesktopAgentState, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun PendingApprovalsCard( localRequests: List&lt;DesktopPairingRequest>, relayRequests: List&lt;DesktopRelaySessionRequest>, approve: (String) -> Unit, reject: (String) -> Unit, approveRelay: (String) -> Unit, rejectRelay: (String) -> Unit, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun PillButton( text: String, onClick: () -> Unit, variant: ButtonVariant, enabled: Boolean = true, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun QrCode(payload: String?)</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun QuickStatusGrid(state: DesktopAgentState)</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun RelayApprovalRow( request: DesktopRelaySessionRequest, approve: (String) -> Unit, reject: (String) -> Unit, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun RelayDetailsCard( state: DesktopAgentState, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun RelayGuideCard()</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun RelayTextField( value: String, onValueChange: (String) -> Unit, label: String, placeholder: String, enabled: Boolean, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun SectionCard( modifier: Modifier = Modifier, contentPadding: androidx.compose.ui.unit.Dp = 16.dp, content: @Composable ColumnScope.() -> Unit, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun SettingsDivider()</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun SettingsGroupHeader( title: String, subtitle: String, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun SettingsSwitchRow( title: String, description: String, checked: Boolean, enabled: Boolean = true, emphasizedOff: Boolean = false, onCheckedChange: (Boolean) -> Unit, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun Sidebar( state: DesktopAgentState, selectedSection: DesktopSection, onSelectSection: (DesktopSection) -> Unit, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun StandalonePairingApproval( request: DesktopPairingRequest, approve: (String) -> Unit, reject: (String) -> Unit, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun StatusChip( text: String, tone: StatusTone, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun StatusDataRow( label: String, active: Boolean, )</ID>
+    <ID>FunctionNaming:Main.kt$@Composable private fun StatusDot(active: Boolean)</ID>
+    <ID>FunctionNaming:WindowsWindowStyling.kt$DwmApi$fun DwmSetWindowAttribute( hwnd: Pointer, attribute: Int, value: IntByReference, valueSize: Int, ): Int</ID>
+    <ID>LongMethod:Main.kt$fun main()</ID>
+    <ID>TooManyFunctions:Main.kt$dev.aegis.remote.desktop.Main.kt</ID>
+  </CurrentIssues>
+</SmellBaseline>

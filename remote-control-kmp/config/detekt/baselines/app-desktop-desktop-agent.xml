@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:LinuxAegisOpenSshManager.kt$!Files.isRegularFile(pidPath, LinkOption.NOFOLLOW_LINKS) || !Files.isRegularFile(configPath, LinkOption.NOFOLLOW_LINKS) || Files.size(pidPath) > 32L || Files.size(configPath) > LINUX_MANAGED_CONFIG_MAX_BYTES</ID>
+    <ID>CyclomaticComplexMethod:AgentLogLocalization.kt$fun AgentLogEntry.localizedMessage(languageTag: String): String</ID>
+    <ID>CyclomaticComplexMethod:AgentLogLocalization.kt$fun DesktopAgentState.localizedRelayConfigurationMessage(languageTag: String): String?</ID>
+    <ID>CyclomaticComplexMethod:AgentLogLocalization.kt$private fun AgentLogEntry.localizedRelayConfigurationEvent(spanish: Boolean): String</ID>
+    <ID>CyclomaticComplexMethod:AgentLogLocalization.kt$private fun AgentLogEntry.localizedRelayConnectionEvent(spanish: Boolean): String</ID>
+    <ID>CyclomaticComplexMethod:AgentLogLocalization.kt$private fun AgentLogEntry.localizedRelaySessionEvent(spanish: Boolean): String</ID>
+    <ID>CyclomaticComplexMethod:LinuxAegisOpenSshManager.kt$internal fun findManagedLinuxSshdProcess( pidPath: Path, configPath: Path, authorizedKeysPath: Path, sshdPath: Path, port: Int, authorizedUser: String, ): LinuxManagedSshdProcess?</ID>
+    <ID>LargeClass:DesktopAgentTest.kt$DesktopAgentTest</ID>
+    <ID>LongParameterList:DesktopAgent.kt$DesktopAgent$( pairingServer: LocalPairingServer, trustStore: DeviceTrustStore = FileDeviceTrustStore(), relayConnector: DesktopRelayConnector? = KtorDesktopRelayConnector.fromEnvironment(), monitorProvider: MonitorProvider = DesktopWebRtcMonitorProvider(), capabilityDetector: DesktopCapabilityDetector = DesktopPlatformCapabilityDetector(), inputExecutorFactory: DesktopRemoteInputExecutorFactory = DesktopRemoteInputExecutorFactory(), clipboardBridgeFactory: DesktopClipboardBridgeFactory = DesktopClipboardBridgeFactory(), settingsRepository: AppSettingsRepository = FileDesktopAppSettingsRepository(), relayConfigRepository: RelayConfigRepository = (settingsRepository as? RelayConfigRepository) ?: FileDesktopAppSettingsRepository(), relayConnectorFactory: (RelayConfig) -> DesktopRelayConnector = { config -> KtorDesktopRelayConnector( relayUrl = config.relayUrl, relayDeviceId = config.deviceId, remoteAccessEnabled = config.enabled, ) }, autostartManager: DesktopAutostartManager = UserDesktopAutostartManager(), manualConnectionInfoProvider: DesktopManualConnectionInfoProvider = SystemDesktopManualConnectionInfoProvider(), openSshProvisioner: AegisOpenSshManager? = null, clock: () -> Long = { System.currentTimeMillis() }, localProtocolAuthenticator: LocalProtocolAuthenticator = LocalProtocolAuthenticator(), relayReconnectionPolicy: DesktopRelayReconnectPolicy = BoundedDesktopRelayReconnectPolicy(), scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default), )</ID>
+    <ID>LongParameterList:LinuxAegisOpenSshManager.kt$LinuxAegisOpenSshManager$( private val rootDirectory: Path = defaultLinuxAegisOpenSshDirectory(), private val authorizedUser: String = System.getProperty("user.name").orEmpty(), private val port: Int = LINUX_AEGIS_SSH_PORT, private val sshdPath: Path = defaultLinuxSshdPath(), private val sshKeygenPath: Path = Path.of("/usr/bin/ssh-keygen"), private val commandRunner: OpenSshCommandRunner = ProcessOpenSshCommandRunner(), private val processLauncher: LinuxSshdProcessLauncher = ProcessLinuxSshdProcessLauncher(), private val managedProcessFinder: (Path, Path, Path, Path, Int, String) -> LinuxManagedSshdProcess? = ::findManagedLinuxSshdProcess, private val executableCheck: (Path) -> Boolean = { path -> Files.isRegularFile(path) &amp;&amp; Files.isExecutable(path) }, private val commandTimeoutMillis: Long = LINUX_OPENSSH_COMMAND_TIMEOUT_MILLIS, private val startupGraceMillis: Long = LINUX_OPENSSH_STARTUP_GRACE_MILLIS, private val shutdownTimeoutMillis: Long = LINUX_OPENSSH_SHUTDOWN_TIMEOUT_MILLIS, )</ID>
+    <ID>MaxLineLength:AgentLogLocalization.kt$"registered" -> if (spanish) "Equipo registrado en el relay como ${context["relayDeviceId"].orEmpty()}" else "PC registered with the relay as ${context["relayDeviceId"].orEmpty()}"</ID>
+    <ID>MaxLineLength:AgentLogLocalization.kt$"rejected-remote-disabled" -> if (spanish) "Sesión $sessionId rechazada: acceso remoto desactivado" else "Session $sessionId rejected: remote access is disabled"</ID>
+    <ID>ReturnCount:LinuxAegisOpenSshManager.kt$internal fun findManagedLinuxSshdProcess( pidPath: Path, configPath: Path, authorizedKeysPath: Path, sshdPath: Path, port: Int, authorizedUser: String, ): LinuxManagedSshdProcess?</ID>
+    <ID>ReturnCount:LinuxUfwOnboardingManager.kt$LinuxUfwOnboardingManager$fun inspect(): LinuxUfwInspection</ID>
+    <ID>ThrowsCount:DesktopDeviceIdentityStore.kt$DesktopDeviceIdentityStore$private fun createAndPersist( keyGeneration: Long, previous: StoredDesktopDeviceIdentity?, ): LocalDeviceIdentity</ID>
+    <ID>ThrowsCount:DesktopDeviceIdentityStore.kt$DesktopDeviceIdentityStore$private fun readStoredIdentity(): StoredDesktopDeviceIdentity?</ID>
+    <ID>ThrowsCount:DesktopDeviceIdentityStore.kt$DesktopDeviceIdentityStore$private fun validateStoredKeyMaterial(stored: StoredIdentityKeyMaterial)</ID>
+    <ID>ThrowsCount:FileDeviceTrustStore.kt$FileDeviceTrustStore$private fun unprotectPayload(payload: String): String</ID>
+    <ID>ThrowsCount:FileDeviceTrustStore.kt$private fun validateTrustStoreAccess( path: Path, directory: Boolean, )</ID>
+    <ID>ThrowsCount:LinuxAegisOpenSshManager.kt$LinuxAegisOpenSshManager$private fun validateRequest()</ID>
+    <ID>ThrowsCount:LinuxAegisOpenSshManager.kt$LinuxAegisOpenSshManager$private suspend fun ensureStarted()</ID>
+    <ID>ThrowsCount:LinuxAegisOpenSshManager.kt$LinuxAegisOpenSshManager$private suspend fun runCheckedCommand( command: List&lt;String>, operation: AegisOpenSshOperation, stage: String, ): OpenSshCommandResult</ID>
+    <ID>ThrowsCount:LinuxAegisOpenSshManager.kt$private fun canonicalLinuxPublicKey(value: String): CanonicalLinuxPublicKey</ID>
+    <ID>TooGenericExceptionCaught:DesktopDeviceIdentityStore.kt$DesktopDeviceIdentityStore$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:DesktopDeviceIdentityStore.kt$JcaDesktopLocalDeviceIdentity$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:DesktopDeviceIdentityStore.kt$ProcessSecretServiceCommandRunner$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:DesktopDeviceIdentityStore.kt$WindowsDpapiPrivateKeyProtector$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:DesktopDeviceIdentityStore.kt$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:DesktopManualConnectionInfoProvider.kt$SystemDesktopManualConnectionInfoProvider$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FileDeviceTrustStore.kt$FileDeviceTrustStore$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FileDeviceTrustStore.kt$ProcessSecretToolCommandRunner$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:FileDeviceTrustStore.kt$error: Throwable</ID>
+    <ID>UseRequire:DesktopDeviceIdentityStore.kt$LinuxSecretServicePrivateKeyProtector$throw IllegalArgumentException("Secret Service reference is not canonical")</ID>
+  </CurrentIssues>
+</SmellBaseline>

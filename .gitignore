@@ -1,0 +1,43 @@
+# Editors and operating systems
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Build and package outputs
+.gradle/
+.kotlin/
+build/
+out/
+bin/
+obj/
+dist/
+node_modules/
+!remote-control-kmp/tools/sqldelight-worker-init/src/main/java/dev/aegis/remote/build/
+!remote-control-kmp/tools/sqldelight-worker-init/src/main/java/dev/aegis/remote/build/**
+*.apk
+*.aab
+*.exe
+*.msi
+*.dll
+*.pdb
+*.deb
+*.rpm
+
+# Local settings, credentials and device evidence
+local.properties
+*.local
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.pfx
+*.p12
+*.pem
+*.key
+*.log
+.qa/
+tmp/
+temp/

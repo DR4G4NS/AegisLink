@@ -1,0 +1,63 @@
+pkgname='aegis-remote-desktop'
+pkgver=0.2.0
+pkgrel=1
+pkgdesc='Aegis Remote Control Linux desktop host'
+arch=('x86_64')
+url='https://github.com/DR4G4NS/AegisLink'
+license=('MIT')
+depends=('glibc')
+optdepends=(
+  'pipewire: Wayland screen capture stream'
+  'xdg-desktop-portal: Wayland capture consent'
+  'xdg-desktop-portal-hyprland: Hyprland portal backend'
+  'libdbus: Portal bridge runtime'
+  'xdotool: X11 input backend'
+  'xclip: X11 clipboard backend'
+  'wl-clipboard: Wayland clipboard backend'
+  'ydotool: Wayland input backend'
+  'wtype: Wayland Unicode text input on wlroots compositors (Hyprland, sway)'
+  'ufw: optional explicit-consent LAN firewall onboarding'
+  'polkit: administrator authorization for optional UFW onboarding'
+)
+options=('!strip')
+source=()
+sha256sums=()
+
+prepare() {
+  : "${AEGIS_DIST_DIR:?Set AEGIS_DIST_DIR to the generated Compose app image}"
+  local app="$(realpath -- "$AEGIS_DIST_DIR/Aegis Remote Desktop")"
+  [[ -x "$app/bin/Aegis Remote Desktop" ]] || {
+    printf '%s\n' 'Missing bundled Linux launcher in AEGIS_DIST_DIR' >&2
+    return 1
+  }
+  [[ -d "$app/lib/runtime" ]] || {
+    printf '%s\n' 'Missing bundled JVM runtime in AEGIS_DIST_DIR' >&2
+    return 1
+  }
+  [[ -f "$app/lib/Aegis Remote Desktop.png" ]] || {
+    printf '%s\n' 'Missing bundled application icon in AEGIS_DIST_DIR' >&2
+    return 1
+  }
+}
+
+package() {
+  local app="$(realpath -- "$AEGIS_DIST_DIR/Aegis Remote Desktop")"
+  local install_root="$pkgdir/opt/aegis-remote-desktop"
+
+  install -dm755 "$install_root"
+  cp -a -- "$app/." "$install_root/"
+
+  install -dm755 "$pkgdir/usr/bin"
+  ln -s "/opt/aegis-remote-desktop/bin/Aegis Remote Desktop" "$pkgdir/usr/bin/aegis-remote-desktop"
+
+  install -Dm644 "$startdir/aegis-remote-desktop.desktop" \
+    "$pkgdir/usr/share/applications/aegis-remote-desktop.desktop"
+  install -Dm644 "$app/lib/Aegis Remote Desktop.png" \
+    "$pkgdir/usr/share/icons/hicolor/256x256/apps/aegis-remote-desktop.png"
+  install -Dm755 "$startdir/../linux/aegis-ufw-onboard" \
+    "$pkgdir/usr/lib/aegis-remote-desktop/aegis-ufw-onboard"
+  install -Dm644 "$startdir/../linux/dev.aegis.remote.ufw.policy" \
+    "$pkgdir/usr/share/polkit-1/actions/dev.aegis.remote.ufw.policy"
+  install -Dm644 "$startdir/../../app-desktop/desktop-main/src/main/package/LICENSE.txt" \
+    "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

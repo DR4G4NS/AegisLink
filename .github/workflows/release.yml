@@ -1,0 +1,252 @@
+name: Signed release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-candidate-gates:
+    runs-on: windows-latest
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: remote-control-kmp
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Full static, migration, unit and crypto gates
+        shell: pwsh
+        run: >-
+          ./gradlew.bat --no-daemon --dependency-verification strict
+          check detekt ktlintCheck lintRelease verifySqlDelightMigration
+          :app-desktop:desktop-agent:test
+          :app-desktop:desktop-input:test
+          :app-desktop:desktop-clipboard:test
+          :app-desktop:desktop-webrtc:test
+          :app-desktop:desktop-main:test
+          :shared:core-pairing:jvmTest
+          :shared:core-security:jvmTest
+          :protocol:protocol-models:jvmTest
+          :protocol:protocol-tests:jvmTest
+          :relay-server:relay-main:test
+          :app-android:testDebugUnitTest
+
+  relay-production-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: aegis_test
+          POSTGRES_USER: aegis
+          POSTGRES_PASSWORD: aegis-integration-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U aegis -d aegis_test"
+          --health-interval 2s --health-timeout 2s --health-retries 30
+      redis:
+        image: redis:8-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s --health-timeout 2s --health-retries 30
+    defaults:
+      run:
+        working-directory: remote-control-kmp
+    env:
+      AEGIS_TEST_POSTGRES_URL: jdbc:postgresql://127.0.0.1:5432/aegis_test
+      AEGIS_TEST_POSTGRES_USER: aegis
+      AEGIS_TEST_POSTGRES_PASSWORD: aegis-integration-only
+      AEGIS_TEST_REDIS_URL: redis://127.0.0.1:6379/0
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Durable multi-store relay integration
+        run: >-
+          ./gradlew --no-daemon --dependency-verification strict
+          :relay-server:relay-main:test
+          --tests dev.aegis.remote.relay.RelayPostgresRedisIntegrationTest
+      - name: Authenticated TURN allocation
+        run: |
+          docker compose -f relay-server/docker-compose.integration.yml up -d --wait coturn
+          bash relay-server/scripts/verify-turn-allocation.sh
+      - name: Stop relay dependencies
+        if: always()
+        run: docker compose -f relay-server/docker-compose.integration.yml down --remove-orphans
+
+  signed-packages:
+    needs: [release-candidate-gates, relay-production-gates]
+    runs-on: windows-latest
+    timeout-minutes: 90
+    environment: production
+    defaults:
+      run:
+        working-directory: remote-control-kmp
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Resolve immutable release version
+        shell: pwsh
+        run: |
+          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME.TrimStart('v') } else { '0.2.0' }
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "PKG-9003: invalid release version $version" }
+          "AEGIS_RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Materialize signing keys
+        shell: pwsh
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          WINDOWS_PFX_B64: ${{ secrets.WINDOWS_PFX_B64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+          ANDROID_CERT_SHA256: ${{ vars.ANDROID_CERT_SHA256 }}
+          WINDOWS_CERT_SUBJECT: ${{ vars.WINDOWS_CERT_SUBJECT }}
+        run: |
+          foreach ($name in @('ANDROID_KEYSTORE_B64', 'WINDOWS_PFX_B64', 'ANDROID_STORE_PASSWORD', 'ANDROID_KEY_ALIAS', 'ANDROID_KEY_PASSWORD', 'WINDOWS_PFX_PASSWORD', 'ANDROID_CERT_SHA256', 'WINDOWS_CERT_SUBJECT')) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) { throw "Release configuration is required: $name" }
+          }
+          New-Item -ItemType Directory -Force "$env:RUNNER_TEMP/aegis-signing" | Out-Null
+          [IO.File]::WriteAllBytes("$env:RUNNER_TEMP/aegis-signing/android.jks", [Convert]::FromBase64String($env:ANDROID_KEYSTORE_B64))
+          [IO.File]::WriteAllBytes("$env:RUNNER_TEMP/aegis-signing/windows.pfx", [Convert]::FromBase64String($env:WINDOWS_PFX_B64))
+      - name: Build release artifacts and SBOM
+        shell: pwsh
+        env:
+          AEGIS_ANDROID_KEYSTORE: ${{ runner.temp }}/aegis-signing/android.jks
+          AEGIS_ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          AEGIS_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          AEGIS_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: >-
+          ./gradlew.bat --no-daemon --dependency-verification strict -PaegisVersion=${{ env.AEGIS_RELEASE_VERSION }}
+          :app-android:assembleRelease
+          :app-desktop:desktop-main:createDistributable
+          cyclonedxBom
+      - name: Verify Android signature
+        shell: pwsh
+        env:
+          AEGIS_ANDROID_CERT_SHA256: ${{ vars.ANDROID_CERT_SHA256 }}
+        run: |
+          $apk = Get-ChildItem app-android/build/outputs/apk/release/*.apk | Select-Object -First 1
+          if (-not $apk -or $apk.Name -like '*unsigned*') { throw "Signed Android APK was not produced" }
+          if ([string]::IsNullOrWhiteSpace($env:AEGIS_ANDROID_CERT_SHA256)) { throw 'PKG-9021: ANDROID_CERT_SHA256 production variable is required' }
+          $apksigner = Get-ChildItem "$env:ANDROID_HOME/build-tools/*/apksigner.bat" | Sort-Object FullName -Descending | Select-Object -First 1
+          $signatureOutput = @(& $apksigner.FullName verify --verbose --print-certs $apk.FullName 2>&1)
+          if ($LASTEXITCODE -ne 0) { throw "Android APK signature verification failed" }
+          $digestMatch = [regex]::Match(($signatureOutput -join "`n"), '(?im)Signer #1 certificate SHA-256 digest:\s*([0-9a-f:]+)')
+          if (-not $digestMatch.Success) { throw 'PKG-9021: apksigner did not report the Android certificate SHA-256 digest' }
+          $actualDigest = ($digestMatch.Groups[1].Value -replace '[^0-9A-Fa-f]', '').ToLowerInvariant()
+          $expectedDigest = ($env:AEGIS_ANDROID_CERT_SHA256 -replace '[^0-9A-Fa-f]', '').ToLowerInvariant()
+          if ($expectedDigest.Length -ne 64 -or $actualDigest -ne $expectedDigest) { throw 'PKG-9021: Android APK signer does not match the pinned production certificate' }
+
+          $aapt = Get-ChildItem "$env:ANDROID_HOME/build-tools/*/aapt.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $aapt) { throw 'PKG-9022: aapt is required to verify the Android release manifest' }
+          $badging = @(& $aapt.FullName dump badging $apk.FullName 2>&1)
+          if ($LASTEXITCODE -ne 0) { throw 'PKG-9022: Android release manifest could not be inspected' }
+          $packageMatch = [regex]::Match(($badging -join "`n"), "(?m)^package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'")
+          if (-not $packageMatch.Success -or $packageMatch.Groups[1].Value -ne 'dev.aegis.remote.android' -or $packageMatch.Groups[3].Value -ne $env:AEGIS_RELEASE_VERSION) {
+            throw 'PKG-9022: Android release package ID or version does not match the release manifest'
+          }
+      - name: Locate Inno Setup
+        shell: pwsh
+        run: |
+          $iscc = @(
+            (Get-Command ISCC.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -First 1),
+            (Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'),
+            (Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe')
+          ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup --no-progress -y
+            if ($LASTEXITCODE -ne 0) { throw 'PKG-9002: Inno Setup installation failed' }
+            $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          }
+          if (-not (Test-Path -LiteralPath $iscc)) { throw 'PKG-9002: ISCC.exe is unavailable' }
+          "AEGIS_ISCC=$iscc" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Cache bundled OpenSSH dependency
+        uses: actions/cache@v4
+        with:
+          path: remote-control-kmp/build/packaging-dependencies
+          key: openssh-win64-10.0.0.0p2-preview-23f50f34
+      - name: Verify and prepare bundled OpenSSH
+        shell: pwsh
+        run: |
+          $openSshDir = ./tools/release/prepare-openssh.ps1
+          "AEGIS_BUNDLED_OPENSSH=$openSshDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Sign Windows launcher and build provisioned Setup
+        shell: pwsh
+        env:
+          AEGIS_WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+          AEGIS_WINDOWS_CERT_SUBJECT: ${{ vars.WINDOWS_CERT_SUBJECT }}
+        run: |
+          $launcher = 'app-desktop/desktop-main/build/compose/binaries/main/app/Aegis Remote Desktop/Aegis Remote Desktop.exe'
+          ./tools/release/sign-windows.ps1 -Path $launcher -PfxPath "$env:RUNNER_TEMP/aegis-signing/windows.pfx"
+          $output = Join-Path (Get-Location) 'dist/signed-release'
+          New-Item -ItemType Directory -Force $output | Out-Null
+          $signer = (Resolve-Path 'tools/release/sign-windows.ps1').Path
+          $pfx = "$env:RUNNER_TEMP/aegis-signing/windows.pfx"
+          $signCommand = 'pwsh.exe -NoLogo -NoProfile -NonInteractive -File $q' + $signer + '$q -Path $q$f$q -PfxPath $q' + $pfx + '$q'
+          & $env:AEGIS_ISCC "/DAppVersion=$env:AEGIS_RELEASE_VERSION" '/DSignedBuild=1' "/DBundledOpenSshDir=$env:AEGIS_BUNDLED_OPENSSH" "/Saegissign=$signCommand" "/O$output" 'packaging/windows/AegisRemoteDesktop.iss'
+          if ($LASTEXITCODE -ne 0) { throw 'PKG-9004: provisioned Windows Setup build failed' }
+      - name: Verify provisioned Windows Setup and signed uninstaller lifecycle
+        shell: pwsh
+        env:
+          AEGIS_WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+          AEGIS_WINDOWS_CERT_SUBJECT: ${{ vars.WINDOWS_CERT_SUBJECT }}
+        run: |
+          $setup = Get-ChildItem 'dist/signed-release/Aegis-Remote-Desktop-Setup-*.exe' | Select-Object -First 1
+          if (-not $setup) { throw 'PKG-9004: provisioned Windows Setup was not produced' }
+          $signature = Get-AuthenticodeSignature -LiteralPath $setup.FullName
+          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -ne $env:AEGIS_WINDOWS_CERT_SUBJECT) { throw 'PKG-9006: Setup signature is invalid or unexpected' }
+          ./tools/qa/windows-setup-smoke.ps1 -SetupPath $setup.FullName -ExpectedSignerSubject $env:AEGIS_WINDOWS_CERT_SUBJECT
+      - name: Create signed-release manifest
+        shell: pwsh
+        run: |
+          $apk = @(Get-ChildItem 'app-android/build/outputs/apk/release/*.apk')
+          if ($apk.Count -ne 1 -or $apk[0].Name -like '*unsigned*') { throw 'PKG-9022: expected exactly one signed Android APK' }
+          Copy-Item -LiteralPath $apk[0].FullName -Destination "dist/signed-release/Aegis-Remote-Android-$env:AEGIS_RELEASE_VERSION.apk" -Force
+          Copy-Item 'tools/release/verify-windows-update.ps1' 'dist/signed-release/verify-windows-update.ps1' -Force
+          foreach ($format in @('json', 'xml')) {
+            Copy-Item "build/reports/cyclonedx/bom.$format" "dist/signed-release/aegis-sbom-$env:AEGIS_RELEASE_VERSION.$format" -Force
+          }
+          $artifacts = @(Get-ChildItem 'dist/signed-release' -File | Where-Object Name -ne 'SHA256SUMS.txt')
+          if ($artifacts.Count -ne 5) { throw 'PKG-9022: release bundle must contain Setup, APK, verifier, and both SBOM formats' }
+          $artifacts | Sort-Object Name | ForEach-Object {
+            $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          } | Set-Content 'dist/signed-release/SHA256SUMS.txt' -Encoding ascii
+      - name: Upload signed release
+        uses: actions/upload-artifact@v7
+        with:
+          name: signed-release-${{ github.ref_name }}
+          if-no-files-found: error
+          retention-days: 30
+          path: remote-control-kmp/dist/signed-release/*
+      - name: Remove temporary signing material
+        if: ${{ always() }}
+        shell: pwsh
+        run: |
+          $runnerTemp = [IO.Path]::GetFullPath($env:RUNNER_TEMP)
+          $signingRoot = [IO.Path]::GetFullPath((Join-Path $runnerTemp 'aegis-signing'))
+          $tempPrefix = $runnerTemp.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+          if (-not $signingRoot.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid signing cleanup path' }
+          if (Test-Path -LiteralPath $signingRoot) { Remove-Item -LiteralPath $signingRoot -Recurse -Force }

@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:InMemoryRelayRegistry.kt$InMemoryRelayRegistry$sourceDevice.v2IdentityOrNull() == null || targetDevice.v2IdentityOrNull() == null || sourceDevice.revokedAtEpochMillis != null || targetDevice.revokedAtEpochMillis != null || sourceDevice.expiresAtEpochMillis &lt;= clock() || targetDevice.expiresAtEpochMillis &lt;= clock() || !targetDevice.remoteAccessEnabled</ID>
+    <ID>SwallowedException:InMemoryRelayRegistry.kt$JsonRelayRegistryStore$atomicMoveUnsupported: java.nio.file.AtomicMoveNotSupportedException</ID>
+    <ID>SwallowedException:RelayRateLimiter.kt$JsonRelayRateLimitStore$atomicMoveUnsupported: java.nio.file.AtomicMoveNotSupportedException</ID>
+    <ID>ThrowsCount:InMemoryRelayRegistry.kt$InMemoryRelayRegistry$fun registerV2( request: RegisterRelayDeviceV2Request, policy: RelayIdentityPolicy, ): RegisterRelayDeviceV2Response</ID>
+    <ID>ThrowsCount:InMemoryRelayRegistry.kt$InMemoryRelayRegistry$fun revokeV2( request: RevokeRelayDeviceV2Request, policy: RelayIdentityPolicy, ): RevokeRelayDeviceV2Response</ID>
+  </CurrentIssues>
+</SmellBaseline>

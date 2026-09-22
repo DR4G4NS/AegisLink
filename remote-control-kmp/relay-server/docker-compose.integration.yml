@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: aegis_test
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: aegis-integration-only
+    ports:
+      - "127.0.0.1:55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis_test"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:56379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  coturn:
+    image: coturn/coturn:4.14.0-r0-alpine
+    command:
+      - --log-file=stdout
+      - --fingerprint
+      - --use-auth-secret
+      - --static-auth-secret=aegis-turn-integration-only
+      - --realm=aegis.integration
+      - --no-cli
+      - --no-tls
+      - --no-dtls
+      - --allow-loopback-peers
+      - --no-multicast-peers
+      - --min-port=54900
+      - --max-port=54920
+    ports:
+      - "127.0.0.1:53478:3478/tcp"
+      - "127.0.0.1:53478:3478/udp"
+      - "127.0.0.1:54900-54920:54900-54920/udp"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 3478"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    tmpfs:
+      - /var/lib/coturn

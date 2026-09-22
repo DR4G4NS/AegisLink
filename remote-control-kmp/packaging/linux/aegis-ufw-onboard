@@ -1,0 +1,41 @@
+#!/bin/sh
+set -eu
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+export LC_ALL=C
+
+fail() {
+    printf '%s\n' "aegis-ufw-onboard: $1" >&2
+    exit 2
+}
+
+[ "$(id -u)" -eq 0 ] || fail "root authorization is required"
+[ "$#" -eq 2 ] || fail "expected interface and CIDR"
+interface=$1
+cidr=$2
+case "$interface" in
+    ''|*[!A-Za-z0-9_.-]*) fail "invalid interface" ;;
+esac
+[ "${#interface}" -le 15 ] || fail "invalid interface"
+case "$(printf '%s' "$interface" | tr '[:upper:]' '[:lower:]')" in
+    lo|docker*|veth*|virbr*|br-*|tun*|tap*|wg*|tailscale*|zt*|podman*|cni*) fail "interface is not a physical LAN interface" ;;
+esac
+printf '%s\n' "$cidr" | grep -Eq '^[0-9]{1,3}(\.[0-9]{1,3}){3}/[0-9]{1,2}$' || fail "invalid CIDR"
+
+status=$(ufw status 2>/dev/null) || fail "UFW status is unavailable"
+printf '%s\n' "$status" | grep -Fxq 'Status: active' || fail "UFW is not active; it will not be enabled"
+
+default_routes=$(ip -o -4 route show default)
+[ "$(printf '%s\n' "$default_routes" | awk 'NF { n++ } END { print n+0 }')" -eq 1 ] || fail "active interface is ambiguous"
+default_interfaces=$(printf '%s\n' "$default_routes" | awk '{ for (i=1; i<NF; i++) if ($i == "dev") print $(i+1) }')
+[ "$(printf '%s\n' "$default_interfaces" | awk 'NF { n++ } END { print n+0 }')" -eq 1 ] || fail "active interface is ambiguous"
+[ "$default_interfaces" = "$interface" ] || fail "interface is no longer active"
+
+connected_routes=$(ip -o -4 route show dev "$interface" proto kernel scope link)
+[ "$(printf '%s\n' "$connected_routes" | awk 'NF { n++ } END { print n+0 }')" -eq 1 ] || fail "LAN CIDR is ambiguous"
+connected_cidrs=$(printf '%s\n' "$connected_routes" | awk 'NF { print $1 }')
+[ "$connected_cidrs" = "$cidr" ] || fail "CIDR is no longer active"
+
+# `ufw allow` reports and preserves an existing identical rule, making retries safe.
+ufw allow in on "$interface" proto tcp from "$cidr" to any port 48291 comment 'Aegis pairing LAN'
+ufw allow in on "$interface" proto tcp from "$cidr" to any port 48222 comment 'Aegis SSH LAN'

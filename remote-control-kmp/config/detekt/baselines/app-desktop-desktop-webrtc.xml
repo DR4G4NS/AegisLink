@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:DesktopRtcMediaStatsSampler.kt$DesktopRtcMediaStatsSampler$previousBytes == null || previousAt == null || nowMillis &lt;= previousAt || bytesSent &lt; previousBytes</ID>
+    <ID>CyclomaticComplexMethod:DesktopNativeWebRtcSenderSession.kt$DesktopNativeWebRtcSenderSession$private fun startStatsCollection(peer: RTCPeerConnection)</ID>
+    <ID>CyclomaticComplexMethod:DesktopRtcMediaStatsSampler.kt$DesktopRtcMediaStatsSampler$fun sample( entries: Collection&lt;DesktopRtcStatsEntry>, nowMillis: Long, ): DesktopRtcMediaStats?</ID>
+    <ID>LoopWithTooManyJumpStatements:DesktopNativeWebRtcSenderSession.kt$DesktopNativeWebRtcSenderSession$while</ID>
+    <ID>MatchingDeclarationName:DesktopRtcIceStatsMapper.kt$DesktopRtcStatsEntry</ID>
+    <ID>NestedBlockDepth:PortalPipeWireCapture.kt$private fun writeChromaPlanes( target: NativeI420Buffer, frame: PipeWireRawVideoFrame, )</ID>
+    <ID>TooGenericExceptionCaught:DesktopInboundDataChannelOwnership.kt$DesktopInboundDataChannelGeneration$error: Error</ID>
+    <ID>TooGenericExceptionCaught:DesktopInboundDataChannelOwnership.kt$DesktopInboundDataChannelOwner$error: Error</ID>
+    <ID>TooGenericExceptionCaught:DesktopNativeWebRtcSenderSession.kt$DesktopNativeWebRtcSenderSession$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PortalPipeWireCapture.kt$PortalPipeWireCaptureSession$error: Throwable</ID>
+    <ID>UnusedParameter:DesktopNativeWebRtcSenderSession.kt$DesktopNativeWebRtcSenderSession$now: Long</ID>
+    <ID>UseCheckOrError:DesktopNativeWebRtcSenderSession.kt$DesktopNativeWebRtcSenderSession$throw IllegalStateException("TURN credential is unavailable or expired")</ID>
+  </CurrentIssues>
+</SmellBaseline>

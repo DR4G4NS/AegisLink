@@ -1,0 +1,1 @@
+ALTER TABLE deviceProfile ADD COLUMN localProtocolTokenRef TEXT;

@@ -1,0 +1,30 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+  warningsAsErrors: true
+
+naming:
+  FunctionNaming:
+    # Compose UI functions follow the framework's PascalCase convention.
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  LongMethod:
+    threshold: 120
+  LongParameterList:
+    functionThreshold: 12
+    constructorThreshold: 12
+  TooManyFunctions:
+    thresholdInFiles: 40
+    thresholdInClasses: 40
+    thresholdInObjects: 40
+
+style:
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    maxLineLength: 160
+  ReturnCount:
+    max: 8

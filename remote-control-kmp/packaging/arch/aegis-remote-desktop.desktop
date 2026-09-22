@@ -1,0 +1,12 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Aegis Remote Desktop
+Comment=Visible desktop agent for Aegis Remote Control
+Exec=/usr/bin/aegis-remote-desktop
+Icon=aegis-remote-desktop
+Terminal=false
+StartupNotify=true
+Categories=Network;RemoteAccess;
+Keywords=remote;desktop;webrtc;

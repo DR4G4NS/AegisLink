@@ -1,0 +1,2 @@
+ALTER TABLE deviceProfile ADD COLUMN pairedHostIdentityJson TEXT;
+ALTER TABLE deviceProfile ADD COLUMN wakeOnLanConfigsJson TEXT;

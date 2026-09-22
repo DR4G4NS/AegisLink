@@ -1,0 +1,12 @@
+root = true
+
+[*.{kt,kts}]
+indent_size = 4
+max_line_length = 160
+ktlint_code_style = ktlint_official
+# Compose uses PascalCase functions by design, and protocol constants sometimes
+# intentionally mirror wire names. Detekt remains the semantic naming gate.
+ktlint_standard_function-naming = disabled
+ktlint_standard_property-naming = disabled
+ktlint_standard_max-line-length = disabled
+ktlint_standard_filename = disabled

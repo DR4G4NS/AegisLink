@@ -1,0 +1,89 @@
+-- Keep migration-added columns append-only so fresh and upgraded schemas have identical ordering.
+CREATE TABLE deviceProfile (
+    id TEXT NOT NULL PRIMARY KEY,
+    displayName TEXT NOT NULL,
+    localHost TEXT NOT NULL,
+    localPort INTEGER,
+    vpnHost TEXT,
+    vpnPort INTEGER,
+    relayDeviceId TEXT,
+    sshPort INTEGER NOT NULL,
+    username TEXT NOT NULL,
+    authMethod TEXT NOT NULL,
+    credentialsRef TEXT,
+    hostKeyAlgorithm TEXT,
+    hostKeyValue TEXT,
+    macAddress TEXT,
+    wolBroadcastAddress TEXT,
+    wolPort INTEGER,
+    lastConnectedAt INTEGER,
+    lastSuccessfulRoute TEXT,
+    defaultMonitorId TEXT,
+    qualityPreference TEXT NOT NULL,
+    permissionTerminal INTEGER NOT NULL,
+    permissionVisual INTEGER NOT NULL,
+    permissionInput INTEGER NOT NULL,
+    permissionSftp INTEGER NOT NULL,
+    permissionClipboard INTEGER NOT NULL,
+    permissionWakeOnLan INTEGER NOT NULL,
+    permissionRemoteAccess INTEGER NOT NULL,
+    remoteAccessEnabled INTEGER NOT NULL,
+    localProtocolTokenRef TEXT,
+    localAgentCertificateFingerprint TEXT,
+    pairedHostIdentityJson TEXT,
+    wakeOnLanConfigsJson TEXT,
+    authorizedDeviceId TEXT,
+    remoteSshPort INTEGER
+);
+
+selectAll:
+SELECT *
+FROM deviceProfile
+ORDER BY displayName COLLATE NOCASE;
+
+selectById:
+SELECT *
+FROM deviceProfile
+WHERE id = ?;
+
+upsert:
+INSERT OR REPLACE INTO deviceProfile(
+    id,
+    displayName,
+    localHost,
+    localPort,
+    vpnHost,
+    vpnPort,
+    relayDeviceId,
+    sshPort,
+    username,
+    authMethod,
+    credentialsRef,
+    localProtocolTokenRef,
+    localAgentCertificateFingerprint,
+    authorizedDeviceId,
+    pairedHostIdentityJson,
+    hostKeyAlgorithm,
+    hostKeyValue,
+    macAddress,
+    wolBroadcastAddress,
+    wolPort,
+    wakeOnLanConfigsJson,
+    lastConnectedAt,
+    lastSuccessfulRoute,
+    defaultMonitorId,
+    qualityPreference,
+    permissionTerminal,
+    permissionVisual,
+    permissionInput,
+    permissionSftp,
+    permissionClipboard,
+    permissionWakeOnLan,
+    permissionRemoteAccess,
+    remoteAccessEnabled,
+    remoteSshPort
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteById:
+DELETE FROM deviceProfile
+WHERE id = ?;

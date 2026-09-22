@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:AwtRemoteInputExecutor.kt$AwtRemoteInputExecutor$private fun KeyCode.toAwtKeyCode(): Int</ID>
+    <ID>CyclomaticComplexMethod:LinuxX11InputExecutor.kt$private fun KeyCode.toX11Key(): String</ID>
+    <ID>UnusedPrivateClass:AwtRemoteInputExecutorTest.kt$RecordingWindowsSendInputApi : WindowsSendInputApi</ID>
+  </CurrentIssues>
+</SmellBaseline>

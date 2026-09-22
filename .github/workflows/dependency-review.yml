@@ -1,0 +1,25 @@
+name: Dependency review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Review dependency vulnerabilities and licenses
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: moderate
+          license-check: true
+          deny-licenses: >-
+            AGPL-1.0-only, AGPL-1.0-or-later,
+            AGPL-3.0-only, AGPL-3.0-or-later,
+            GPL-1.0-only, GPL-1.0-or-later,
+            GPL-2.0-only, GPL-2.0-or-later,
+            GPL-3.0-only, GPL-3.0-or-later

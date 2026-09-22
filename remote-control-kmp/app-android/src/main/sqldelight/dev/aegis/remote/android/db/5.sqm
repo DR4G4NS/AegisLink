@@ -1,0 +1,2 @@
+ALTER TABLE deviceProfile ADD COLUMN remoteSshPort INTEGER;
+UPDATE deviceProfile SET remoteSshPort = vpnPort WHERE vpnPort IS NOT NULL AND pairedHostIdentityJson IS NULL;
