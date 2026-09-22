@@ -169,16 +169,23 @@ class LinuxWaylandYdotoolInputExecutor(
         // wtype types Unicode through the virtual-keyboard protocol, but its stdin/text mode
         // maps '\n' to Linefeed rather than Return, so line breaks and tabs go as named keys.
         wtypeSegments(text).forEach { segment ->
-            val args =
-                when (segment) {
-                    "\n" -> listOf(wtype, "-k", "Return")
-                    "\t" -> listOf(wtype, "-k", "Tab")
-                    else -> listOf(wtype, "--", segment)
-                }
-            val result = runner.run(args)
-            if (result.exitCode != 0) {
-                throw unavailable("Wayland Unicode text through wtype failed: ${result.output.take(YDOTOOL_MAX_DIAGNOSTIC_CHARS)}")
+            typeUnicodeSegment(wtype, segment)
+        }
+    }
+
+    private fun typeUnicodeSegment(
+        wtype: String,
+        segment: String,
+    ) {
+        val args =
+            when (segment) {
+                "\n" -> listOf(wtype, "-k", "Return")
+                "\t" -> listOf(wtype, "-k", "Tab")
+                else -> listOf(wtype, "--", segment)
             }
+        val result = runner.run(args)
+        if (result.exitCode != 0) {
+            throw unavailable("Wayland Unicode text through wtype failed: ${result.output.take(YDOTOOL_MAX_DIAGNOSTIC_CHARS)}")
         }
     }
 

@@ -7,7 +7,6 @@ import dev.aegis.remote.core.model.RelayDeviceId
 import dev.aegis.remote.core.monitor.MonitorProvider
 import dev.aegis.remote.core.pairing.DeviceTrustStore
 import dev.aegis.remote.core.pairing.LanAuthorizationStatus
-import dev.aegis.remote.core.pairing.LocalPairingQrPayload
 import dev.aegis.remote.core.pairing.LocalPairingRequestStatus
 import dev.aegis.remote.core.pairing.localProtocolSessionProofPayload
 import dev.aegis.remote.core.relay.RelayDeviceEvent
@@ -41,7 +40,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.net.URI
 import java.nio.file.Path
@@ -170,7 +168,7 @@ class DesktopAgent(
                 pairingServerIdentityProvider = ::pairingServerIdentity,
                 pairingHostProvider = { pairingHostFromState() },
                 clock = clock,
-                encodeQrPayload = { session -> session.toQrPayloadJson() },
+                encodeQrPayload = { session -> session.toQrPayloadJson(pairingJson) },
                 onHostIdentityChanged = { identity -> currentPairingHostIdentity = identity },
                 refreshAuthorizedDevices = { eventCode, message, level, context, error ->
                     trustCoordinator.refreshAuthorizedDevices(eventCode, message, level, context, error)
@@ -348,71 +346,22 @@ class DesktopAgent(
                 currentPairingSession = pairingSession
                 val startupSettings = settingsCoordinator.loadStartupSettings(pairingSession.url)
                 check(lifecycleActive(generation)) { "Desktop agent startup was cancelled" }
-                val startupWarnings = startupSettings.warnings
-                val clipboardSyncEnabled = startupSettings.clipboardSyncEnabled
                 val storedRelayConfig = startupSettings.storedRelayConfig
                 if (activeRelayConnector == null && storedRelayConfig != null) {
                     activeRelayConnector = relayConnectorFactory(storedRelayConfig)
                     desiredRemoteAccessEnabled = storedRelayConfig.enabled
                     relayConfigOwnedBySettings = true
                 }
-                val autostart = startupSettings.autostart
-                val monitors = startupSettings.monitors
-                val capabilities = startupSettings.capabilities
-                val manualConnectionInfo = startupSettings.manualConnectionInfo
-                val openSshAvailable = startupSettings.openSshAvailable
-
                 _state.update {
-                    startupWarnings.fold(
-                        it
-                            .copy(
-                                pairingServerRunning = true,
-                                pairingUrl = pairingSession.url,
-                                pairingCode = pairingSession.pairingCode,
-                                agentFingerprint = pairingSession.agentFingerprint,
-                                pairingQrPayload = pairingSession.toQrPayloadJson(),
-                                pairingQrExpiresAtEpochMillis = pairingSession.expiresAtEpochMillis,
-                                openSshAvailable = openSshAvailable,
-                                manualConnectionInfo = manualConnectionInfo,
-                                captureCapability = capabilities.capture,
-                                inputCapability = capabilities.input,
-                                linuxPreflight = capabilities.linuxPreflight,
-                                windowsPreflight = capabilities.windowsPreflight,
-                                monitors = monitors,
-                                authorizedDevices = authorizedDevices,
-                                clipboardSyncEnabled = clipboardSyncEnabled,
-                                relayUrl = activeRelayConnector?.relayUrl ?: storedRelayConfig?.relayUrl,
-                                relayDeviceId = storedRelayConfig?.deviceId?.value,
-                                remoteAccessEnabled = desiredRemoteAccessEnabled,
-                                relayConfigurationMessage =
-                                    if (activeRelayConnector == null) {
-                                        "Configura un relay para habilitar el acceso remoto"
-                                    } else {
-                                        "Configuración de relay cargada"
-                                    },
-                                relayConfigurationMessageCode =
-                                    if (activeRelayConnector == null) {
-                                        RelayConfigurationMessageCode.NotConfigured
-                                    } else {
-                                        RelayConfigurationMessageCode.Loaded
-                                    },
-                                autostartAvailable = autostart.available,
-                                autostartEnabled = autostart.enabled,
-                                autostartMessage = autostart.message,
-                                autostartMessageCode = autostart.messageCode,
-                                autostartMessageContext = autostart.messageContext,
-                            ).withLog(
-                                now = clock(),
-                                level = "info",
-                                message = "Local pairing server started at ${pairingSession.url}",
-                                eventCode = AgentLogEventCode.PairingServerStarted,
-                                context =
-                                    mapOf(
-                                        "pairingUrl" to pairingSession.url,
-                                        "candidateCount" to pairingSession.urls.size.toString(),
-                                    ),
-                            ),
-                    ) { current, warning -> current.withLog(clock(), "warn", warning) }
+                    it.withStartedPairingSession(
+                        pairingSession = pairingSession,
+                        startupSettings = startupSettings,
+                        authorizedDevices = authorizedDevices,
+                        activeRelayConnector = activeRelayConnector,
+                        remoteAccessEnabled = desiredRemoteAccessEnabled,
+                        pairingQrPayload = pairingSession.toQrPayloadJson(pairingJson),
+                        clock = clock,
+                    )
                 }
                 pairingCoordinator.schedule(pairingSession.expiresAtEpochMillis)
                 runCatching { lanAnnouncer.start() }
@@ -681,25 +630,6 @@ class DesktopAgent(
             mapKey = mapKey,
             label = label,
             turnCredentialResolver = turnCredentialResolver,
-        )
-
-    private fun LocalPairingSession.toQrPayloadJson(): String =
-        PairingQrTransport.encode(
-            pairingJson.encodeToString(
-                LocalPairingQrPayload(
-                    version = 3,
-                    pairingUrl = url,
-                    pairingUrls = urls,
-                    pairingCode = pairingCode,
-                    agentFingerprint = agentFingerprint,
-                    pairingSecret = pairingSecret,
-                    tokenId = tokenId,
-                    issuedAtEpochMillis = issuedAtEpochMillis,
-                    expiresAtEpochMillis = expiresAtEpochMillis,
-                    hostIdentity = hostIdentity,
-                    signature = hostSignature,
-                ),
-            ),
         )
 
     private fun pairingServerIdentity(): DevicePublicIdentity? = currentPairingHostIdentity

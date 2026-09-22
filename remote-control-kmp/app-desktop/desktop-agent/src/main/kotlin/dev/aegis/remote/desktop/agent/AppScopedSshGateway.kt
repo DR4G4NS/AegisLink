@@ -41,6 +41,7 @@ internal class AppScopedSshGateway(
             }
         }
 
+    @Suppress("TooGenericExceptionCaught") // Socket/executor boundary: close partial listeners for any platform failure.
     private fun refresh(port: Int) =
         synchronized(lock) {
             if (closed) return@synchronized
@@ -73,46 +74,54 @@ internal class AppScopedSshGateway(
             val client = runCatching { listener.accept() }.getOrNull() ?: break
             if (!slots.tryAcquire()) {
                 client.close()
-                continue
-            }
-            val backend = Socket()
-            synchronized(lock) {
-                if (closed) {
-                    client.close()
-                    backend.close()
-                    slots.release()
-                    return
-                }
-                connections.add(client)
-                connections.add(backend)
-            }
-            workers.execute {
-                try {
-                    backend.connect(InetSocketAddress("127.0.0.1", port), 3_000)
-                    client.tcpNoDelay = true
-                    backend.tcpNoDelay = true
-                    workers.execute {
-                        try {
-                            client.getInputStream().copyTo(backend.getOutputStream())
-                        } catch (_: Exception) {
-                            // Disconnects close both directions, including any active SFTP transfer.
-                        } finally {
-                            runCatching { client.close() }
-                            runCatching { backend.close() }
-                        }
-                    }
-                    backend.getInputStream().copyTo(client.getOutputStream())
-                } catch (_: Exception) {
-                    // No fallback to an unguarded endpoint.
-                } finally {
-                    runCatching { client.close() }
-                    runCatching { backend.close() }
-                    connections.remove(client)
-                    connections.remove(backend)
-                    slots.release()
-                }
+            } else if (!dispatch(client, port)) {
+                return
             }
         }
+    }
+
+    private fun dispatch(
+        client: Socket,
+        port: Int,
+    ): Boolean {
+        val backend = Socket()
+        synchronized(lock) {
+            if (closed) {
+                client.close()
+                backend.close()
+                slots.release()
+                return false
+            }
+            connections.add(client)
+            connections.add(backend)
+        }
+        workers.execute {
+            try {
+                backend.connect(InetSocketAddress("127.0.0.1", port), 3_000)
+                client.tcpNoDelay = true
+                backend.tcpNoDelay = true
+                workers.execute {
+                    try {
+                        client.getInputStream().copyTo(backend.getOutputStream())
+                    } catch (_: Exception) {
+                        // Disconnects close both directions, including any active SFTP transfer.
+                    } finally {
+                        runCatching { client.close() }
+                        runCatching { backend.close() }
+                    }
+                }
+                backend.getInputStream().copyTo(client.getOutputStream())
+            } catch (_: Exception) {
+                // No fallback to an unguarded endpoint.
+            } finally {
+                runCatching { client.close() }
+                runCatching { backend.close() }
+                connections.remove(client)
+                connections.remove(backend)
+                slots.release()
+            }
+        }
+        return true
     }
 
     fun disconnectSessions() =

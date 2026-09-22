@@ -12,6 +12,11 @@ packaging scripts, dependency verification metadata, and documentation use this
 layout. Run Gradle commands inside that directory with JDK 21 and Android SDK
 platform 35 installed. The wrapper pins Gradle 8.13 and verifies its SHA-256.
 
+The SQLDelight driver initializer uses `build/tmp/sqldelight-native` for SQLite
+native extraction when no explicit `org.sqlite.tmpdir` override is provided.
+This supports isolated Windows workers whose system temporary path resolves to
+a protected directory; both real migration checks still run normally.
+
 ```powershell
 cd remote-control-kmp
 .\gradlew.bat --dependency-verification strict check detekt ktlintCheck lintRelease verifySqlDelightMigration

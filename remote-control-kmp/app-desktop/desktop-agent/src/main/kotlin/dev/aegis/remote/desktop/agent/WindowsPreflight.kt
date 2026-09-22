@@ -37,6 +37,8 @@ data class WindowsPreflightReport(
     val capabilities: Map<String, WindowsPreflightCapability>,
 )
 
+// Keep OS inputs and side-effecting probes individually injectable for deterministic preflight tests.
+@Suppress("LongParameterList")
 class WindowsPreflightDetector(
     private val osName: String = System.getProperty("os.name").orEmpty(),
     private val architecture: String = System.getProperty("os.arch").orEmpty(),
@@ -158,27 +160,32 @@ class WindowsPreflightDetector(
         val portFree = portProbe(WINDOWS_AEGIS_PREFLIGHT_SSH_PORT)
         val managedRunning = openSshServiceRunning()
         return when {
-            portFree ->
+            portFree -> {
                 capability(
                     WindowsPreflightStatus.Available,
                     "TCP ${WINDOWS_AEGIS_PREFLIGHT_SSH_PORT} is available for the isolated AegisOpenSSH service",
                     "No action required",
                     "aegis-openssh",
                 )
-            managedRunning ->
+            }
+
+            managedRunning -> {
                 capability(
                     WindowsPreflightStatus.Available,
                     "Isolated AegisOpenSSH is already listening on TCP ${WINDOWS_AEGIS_PREFLIGHT_SSH_PORT}",
                     "No action required",
                     "aegis-openssh",
                 )
-            else ->
+            }
+
+            else -> {
                 capability(
                     WindowsPreflightStatus.Degraded,
                     "TCP ${WINDOWS_AEGIS_PREFLIGHT_SSH_PORT} is already occupied or blocked",
                     "Stop the conflicting service or reinstall the provisioned AegisOpenSSH instance",
                     "aegis-openssh",
                 )
+            }
         }
     }
 

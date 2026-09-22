@@ -49,16 +49,24 @@ class AppScopedSshGatewayTest {
             AppScopedSshGateway { listOf(InetAddress.getByName("127.0.0.2")) }.use { gateway ->
                 gateway.start(backend.localPort)
                 Socket("127.0.0.2", backend.localPort).use { client ->
-                    backend.soTimeout = 2_000
-                    backend.accept().use { local ->
-                        client.soTimeout = 2_000
-                        local.getOutputStream().write(7)
-                        assertEquals(7, client.getInputStream().read())
-                        gateway.disconnectSessions()
-                        assertStreamClosed(client)
-                    }
+                    assertPermissionChangeDisconnects(backend, gateway, client)
                 }
             }
+        }
+    }
+
+    private fun assertPermissionChangeDisconnects(
+        backend: ServerSocket,
+        gateway: AppScopedSshGateway,
+        client: Socket,
+    ) {
+        backend.soTimeout = 2_000
+        backend.accept().use { local ->
+            client.soTimeout = 2_000
+            local.getOutputStream().write(7)
+            assertEquals(7, client.getInputStream().read())
+            gateway.disconnectSessions()
+            assertStreamClosed(client)
         }
     }
 

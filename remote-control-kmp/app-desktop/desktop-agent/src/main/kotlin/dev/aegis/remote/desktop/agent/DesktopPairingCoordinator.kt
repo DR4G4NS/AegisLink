@@ -358,10 +358,11 @@ internal class DesktopPairingCoordinator(
                                 level = "info",
                                 message = "Rotated the short-lived local pairing QR",
                                 eventCode = AgentLogEventCode.PairingServerStarted,
-                                context = mapOf(
-                                    "pairingUrl" to session.url,
-                                    "expiresAtEpochMillis" to session.expiresAtEpochMillis.toString(),
-                                ),
+                                context =
+                                    mapOf(
+                                        "pairingUrl" to session.url,
+                                        "expiresAtEpochMillis" to session.expiresAtEpochMillis.toString(),
+                                    ),
                             )
                     }
                     schedulePairingQrRefresh(session.expiresAtEpochMillis)

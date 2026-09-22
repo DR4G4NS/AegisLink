@@ -33,13 +33,19 @@ internal class DesktopTrustCoordinator(
     private val updateState = dependencies.updateState
     private val permissionChanges = mutableSetOf<String>()
 
+    @Suppress("TooGenericExceptionCaught") // Trust/OS adapter boundary: fail closed and publish errors; preserve cancellation.
     fun updatePermissions(
         remoteDeviceId: String,
         permissions: DevicePermissions,
     ) {
         if (state.value.trustStoreRecoveryRequired) return
         synchronized(permissionChanges) { if (!permissionChanges.add(remoteDeviceId)) return }
-        updateState { it.copy(permissionChangesInProgress = it.permissionChangesInProgress + remoteDeviceId, permissionChangeErrors = it.permissionChangeErrors - remoteDeviceId) }
+        updateState {
+            it.copy(
+                permissionChangesInProgress = it.permissionChangesInProgress + remoteDeviceId,
+                permissionChangeErrors = it.permissionChangeErrors - remoteDeviceId,
+            )
+        }
         scope.launch {
             var changedSshDeviceId: String? = null
             try {
@@ -61,8 +67,9 @@ internal class DesktopTrustCoordinator(
                 trustStore.saveAuthorization(latest.copy(permissions = next))
                 closeDeviceSessionResources(remoteDeviceId)
                 refreshAuthorizedDevices(AgentLogEventCode.Generic, "Device permissions updated: $remoteDeviceId", "info", emptyMap())
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                if (error is CancellationException) throw error
                 changedSshDeviceId?.let { runCatching { openSshProvisioner?.setFileAccess(it, false) } }
                 updateState {
                     it

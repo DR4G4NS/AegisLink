@@ -23,7 +23,9 @@ See [production readiness](remote-control-kmp/docs/PRODUCTION_READINESS.md) for 
 
 ## Evidence
 
-Local launch preparation passed Android and desktop compilation, Detekt, ktlint and 133 unit tests (114 Android, 19 desktop; no failures). The final Android UI error boundary was rechecked after review. Desktop screens were rendered with isolated test state to inspect alignment; no physical Android device was connected for this pass.
+Local launch preparation passed Android and desktop compilation, full-repository Detekt and ktlint, Android release lint, both SQLDelight migration checks, and 298 unit tests (114 Android, 19 desktop UI, 135 desktop agent, 30 desktop input; no failures or skips). The final combined run completed 290 Gradle tasks in 1m10s, including cached tasks. The SQLite migration driver now extracts its native library inside the ignored build directory when the worker lacks a writable system temp path.
+
+Desktop screens were rendered with isolated test state to inspect alignment; no physical Android device was connected for this pass.
 
 The clean source export passed Gitleaks 8.30.1 with no findings. Release workflows passed actionlint 1.7.12 and the changed PowerShell scripts passed parser validation. The pinned OpenSSH archive was verified and extracted successfully.
 

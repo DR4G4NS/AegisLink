@@ -46,6 +46,8 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
+// One HTTPS fixture exercises the complete pairing threat matrix; keeping scenarios together aids review.
+@Suppress("LargeClass")
 class KtorLocalPairingServerSecurityTest {
     private val json = Json { ignoreUnknownKeys = true }
 
