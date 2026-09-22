@@ -91,6 +91,12 @@ function releaseOrMissing(repository, tag) {
   }
 }
 
+export function taggedCommit(repository, tag, request = apiOrMissing) {
+  // Missing commit refs return HTTP 422; the Git refs endpoint returns 404.
+  if (!request(`repos/${repository}/git/ref/tags/${tag}`)) return null;
+  return request(`repos/${repository}/commits/${tag}`);
+}
+
 async function publish() {
   const { RELEASE_KIND: kind, RELEASE_TAG: tag, GITHUB_REPOSITORY: repository,
     GITHUB_SHA: sha, GITHUB_RUN_ID: runId, GITHUB_SERVER_URL: server = 'https://github.com' } = process.env;
@@ -100,9 +106,9 @@ async function publish() {
   const output = 'release-assets';
   const bundle = await prepareBundle({ kind, tag, input: 'release-input', output });
   const existing = releaseOrMissing(repository, tag);
-  const taggedCommit = apiOrMissing(`repos/${repository}/commits/${tag}`);
-  if (taggedCommit && taggedCommit.sha !== sha) throw new Error('Existing tag points to another commit');
-  if (kind === 'signed' && !taggedCommit) throw new Error('Signed release requires an existing tag');
+  const tagged = taggedCommit(repository, tag);
+  if (tagged && tagged.sha !== sha) throw new Error('Existing tag points to another commit');
+  if (kind === 'signed' && !tagged) throw new Error('Signed release requires an existing tag');
   if (existing && !existing.isDraft) {
     const manifest = gh('release', 'download', tag, '--repo', repository, '--pattern', 'SHA256SUMS.txt', '--output', '-');
     if (manifest !== bundle.checksums.trim() || existing.isPrerelease !== (kind === 'development') ||

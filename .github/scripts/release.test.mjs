@@ -4,7 +4,22 @@ import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { prepareBundle } from './release.mjs';
+import { prepareBundle, taggedCommit } from './release.mjs';
+
+test('a first release checks for a missing tag without requesting an unknown commit', () => {
+  const requests = [];
+  assert.equal(taggedCommit('owner/repo', 'dev-1-123abcd', endpoint => {
+    requests.push(endpoint);
+    return null;
+  }), null);
+  assert.deepEqual(requests, ['repos/owner/repo/git/ref/tags/dev-1-123abcd']);
+});
+
+test('annotated tags resolve to the underlying commit before publication', () => {
+  assert.deepEqual(taggedCommit('owner/repo', 'v0.2.0', endpoint =>
+    endpoint.includes('/git/ref/') ? { object: { type: 'tag', sha: 'tag-object' } } : { sha: 'commit-object' }),
+  { sha: 'commit-object' });
+});
 
 const devFiles = [
   'windows/app-debug.apk', 'windows/Aegis-Remote-Desktop-Setup-0.2.0.exe',
