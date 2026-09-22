@@ -13,7 +13,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  resolve-tag:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Require an existing semantic version tag
+        id: version
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF_TYPE" != tag || ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo 'Push a vX.Y.Z tag, or select that existing tag for manual dispatch.' >&2
+            exit 1
+          fi
+          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
   release-candidate-gates:
+    needs: resolve-tag
     runs-on: windows-latest
     timeout-minutes: 75
     defaults:
@@ -44,6 +60,7 @@ jobs:
           :app-android:testDebugUnitTest
 
   relay-production-gates:
+    needs: resolve-tag
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -92,10 +109,12 @@ jobs:
         run: docker compose -f relay-server/docker-compose.integration.yml down --remove-orphans
 
   signed-packages:
-    needs: [release-candidate-gates, relay-production-gates]
+    needs: [resolve-tag, release-candidate-gates, relay-production-gates]
     runs-on: windows-latest
     timeout-minutes: 90
     environment: production
+    env:
+      AEGIS_RELEASE_VERSION: ${{ needs.resolve-tag.outputs.version }}
     defaults:
       run:
         working-directory: remote-control-kmp
@@ -106,12 +125,6 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v6
-      - name: Resolve immutable release version
-        shell: pwsh
-        run: |
-          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME.TrimStart('v') } else { '0.2.0' }
-          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "PKG-9003: invalid release version $version" }
-          "AEGIS_RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Materialize signing keys
         shell: pwsh
         env:
@@ -250,3 +263,22 @@ jobs:
           $tempPrefix = $runnerTemp.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
           if (-not $signingRoot.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid signing cleanup path' }
           if (Test-Path -LiteralPath $signingRoot) { Remove-Item -LiteralPath $signingRoot -Recurse -Force }
+
+  publish-release:
+    needs: signed-packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: signed-release-${{ github.ref_name }}
+          path: release-input
+      - name: Publish signed packages after all release gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_KIND: signed
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node .github/scripts/release.mjs

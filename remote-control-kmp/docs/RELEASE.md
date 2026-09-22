@@ -28,6 +28,31 @@ Linux packaging depends on successful tests and static checks. CodeQL and
 dependency-review failures are reported as failures in the public repository.
 CI artifacts are not signed production downloads.
 
+## Automatic development releases
+
+Every successful CI run on `main` publishes a GitHub pre-release named
+`dev-<run-number>-<commit>`. Pull requests and failed checks cannot publish.
+The publication job depends on all five CI jobs, downloads packages from that
+same run, rejects missing or ambiguous files, and creates SHA-256 checksums.
+Only the publication job receives repository write permission.
+
+Download these builds from [Releases](https://github.com/DR4G4NS/AegisLink/releases):
+
+- Installable debug-signed Android APK, using `dev.aegis.remote.android.dev` so
+  it can coexist with production. CI debug certificates can change; updating
+  may require uninstalling the previous development app and losing its data.
+- Unsigned Windows Setup with provisioned OpenSSH, and Linux DEB/RPM packages.
+- Runtime CycloneDX JSON/XML inventories and `SHA256SUMS.txt`.
+
+These builds retain the package version from the source; the immutable release
+tag and linked commit identify each development build. They are marked
+pre-release and never replace a stable release as Latest. Packages upload to a
+draft first; publication happens only after the complete upload succeeds.
+Re-running the same CI does not overwrite an already published release; its
+manifest must match exactly. To retry only a failed publication job, rerun
+failed jobs in Actions. A full rebuild may produce different package hashes.
+Manual CI dispatch on `main` can also produce a development release.
+
 ## Production signing configuration
 
 Configure these values in the GitHub `production` environment. Use established
@@ -57,19 +82,22 @@ by that check.
 
 1. Run and review CI for the exact candidate commit.
 2. Configure production signing and certificate pins above.
-3. Push a semantic-version tag such as `v0.2.0` to run **Signed release**. A
-   manual dispatch uses the current default version, `0.2.0`.
+3. Complete the physical acceptance matrices for the candidate, then push a
+   semantic-version tag such as `v0.2.0` to run **Signed release**. For manual
+   dispatch, select that existing tag; dispatch from a branch is rejected.
 4. The workflow runs static, migration, unit, cryptographic, durable relay,
    and TURN allocation gates before the signing job.
 5. The job signs the Android APK and verifies its package, version, and
    certificate. It signs the Windows launcher and timestamped Setup/uninstaller,
    then executes the elevated installer lifecycle smoke on the runner.
-6. Review the signed artifact bundle and complete the physical Windows/Android
-   and remote-session gates. A green workflow does not substitute for those
-   physical checks.
+6. After signing and verification succeed, the publication job checks the
+   original bundle manifest, creates the GitHub Release for that exact tag,
+   uploads all six files and publishes it as a stable release. A green workflow
+   does not substitute for the physical checks in step 3.
 
-The workflow uploads an Actions artifact. It does not automatically create a
-public GitHub Release or claim that the physical gates passed.
+Missing signing configuration fails the workflow before any stable publication.
+It never falls back to unsigned stable packages. Both workflows preserve
+already published release assets; retries must match their original checksums.
 
 ## Bundled OpenSSH and artifact verification
 

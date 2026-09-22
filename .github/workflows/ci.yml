@@ -173,6 +173,9 @@ jobs:
               --max-workers=1 \
               --stacktrace \
               --console=plain
+      - name: Test release bundle validation
+        working-directory: .
+        run: node --test .github/scripts/release.test.mjs
       - name: Upload static-analysis reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -279,13 +282,27 @@ jobs:
         run: >-
           ./gradlew.bat --no-daemon --dependency-verification strict
           verifySqlDelightMigration --stacktrace --console=plain
-      - name: Build unsigned installable artifacts and SBOM
+      - name: Build developer APK, desktop artifacts and SBOM
         shell: pwsh
         run: >-
           ./gradlew.bat --no-daemon --dependency-verification strict
           :app-android:assembleRelease
+          :app-android:assembleDebug
           :app-desktop:desktop-main:createDistributable
           cyclonedxBom --stacktrace --console=plain
+      - name: Verify installable development APK
+        shell: pwsh
+        run: |
+          $apk = @(Get-ChildItem 'app-android/build/outputs/apk/debug/*.apk')
+          if ($apk.Count -ne 1) { throw 'Expected exactly one development APK' }
+          $apksigner = Get-ChildItem "$env:ANDROID_HOME/build-tools/*/apksigner.bat" | Sort-Object FullName -Descending | Select-Object -First 1
+          & $apksigner.FullName verify --verbose $apk[0].FullName
+          if ($LASTEXITCODE -ne 0) { throw 'Development APK signature is invalid' }
+          $aapt = Get-ChildItem "$env:ANDROID_HOME/build-tools/*/aapt.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          $badging = @(& $aapt.FullName dump badging $apk[0].FullName 2>&1)
+          if ($LASTEXITCODE -ne 0 -or ($badging -join "`n") -notmatch "(?m)^package: name='dev\.aegis\.remote\.android\.dev'") {
+            throw 'Development APK must use its isolated package ID'
+          }
       - name: Cache bundled OpenSSH dependency
         uses: actions/cache@v4
         with:
@@ -320,6 +337,7 @@ jobs:
           retention-days: 14
           path: |
             remote-control-kmp/app-android/build/outputs/apk/release/*.apk
+            remote-control-kmp/app-android/build/outputs/apk/debug/*.apk
             remote-control-kmp/dist/ci-setup/Aegis-Remote-Desktop-Setup-*.exe
             remote-control-kmp/build/reports/cyclonedx/bom.*
             remote-control-kmp/**/build/reports/**
@@ -336,3 +354,24 @@ jobs:
           --volume "$GITHUB_WORKSPACE:/repo"
           zricethezav/gitleaks:v8.30.1
           dir /repo --redact --no-banner
+
+  development-release:
+    needs: [linux-test, static-analysis, linux-package, windows-test, secret-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: aegis-*-artifacts
+          path: release-input
+      - name: Publish verified development packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_KIND: development
+        run: |
+          export RELEASE_TAG="dev-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          node .github/scripts/release.mjs

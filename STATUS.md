@@ -1,6 +1,6 @@
 # Release status
 
-Updated: 2026-09-21.
+Updated: 2026-09-22.
 
 **Public source launch; production binary gates remain open.** AegisLink contains the Aegis application and its automated build, test and packaging workflows. A successful source publication is not a certification of the installed product.
 
@@ -10,6 +10,7 @@ Updated: 2026-09-21.
 - Android and Windows text alignment fixes, including button labels, introductory text, empty states and pairing headings.
 - Separate static website at [dr4g4ns.github.io/AegisLink-web](https://dr4g4ns.github.io/AegisLink-web/), with its own source repository and deployment workflow.
 - Repaired OpenSSH acquisition for packaging, complete release checksum coverage and temporary signing-key cleanup.
+- Automatic development pre-releases after successful `main` CI, and stable release publication after semantic-version tag builds pass signing and release gates. Development downloads do not close the production blockers below.
 
 ## Release blockers
 

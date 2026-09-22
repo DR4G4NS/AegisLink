@@ -31,6 +31,11 @@ android {
         versionName = releaseVersion
     }
 
+    buildTypes.getByName("debug") {
+        applicationIdSuffix = ".dev"
+        versionNameSuffix = "-dev"
+    }
+
     val releaseKeystore = System.getenv("AEGIS_ANDROID_KEYSTORE")
     val releaseStorePassword = System.getenv("AEGIS_ANDROID_STORE_PASSWORD")
     val releaseKeyAlias = System.getenv("AEGIS_ANDROID_KEY_ALIAS")

@@ -20,7 +20,7 @@ Linux host code is also included. Platform support and tested paths are recorded
 
 The source is available under the [MIT license](LICENSE). **A production binary release is not yet certified.** Release signing, installer lifecycle tests and complete physical Android-to-PC sessions remain required before publishing stable installers. The [production readiness document](remote-control-kmp/docs/PRODUCTION_READINESS.md) defines those gates.
 
-Developer APKs and unsigned Windows packages are build outputs, not stable downloads. Build from source for evaluation; follow the release workflow when preparing signed distribution.
+Successful CI runs on `main` automatically publish [development pre-releases](https://github.com/DR4G4NS/AegisLink/releases) with an installable debug Android APK, unsigned Windows Setup, Linux DEB/RPM packages, dependency inventories and checksums. These are evaluation builds. The Android development package uses the `.dev` suffix to coexist with production. See [automatic releases and signing](remote-control-kmp/docs/RELEASE.md) for update limitations and stable releases from `vX.Y.Z` tags.
 
 ## Build
 
