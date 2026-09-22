@@ -980,6 +980,7 @@ class AndroidHomeViewModel internal constructor(
         return ResolveSshRouteUseCase(routeManager()).invoke(profile)
     }
 
+    @Suppress("TooGenericExceptionCaught") // UI operation boundary: report failure while preserving coroutine cancellation.
     private fun saveDirectAccess(draft: DirectAccessDraft) {
         val profile = state.value.profiles.firstOrNull { it.id == state.value.selectedProfileId } ?: return
         val application = getApplication<Application>()
@@ -1005,11 +1006,17 @@ class AndroidHomeViewModel internal constructor(
                         else -> R.string.direct_verified
                     }
                 _state.update { it.copy(relay = it.relay.copy(busy = false, message = application.getString(message))) }
-            } catch (error: Exception) {
-                if (error is CancellationException) throw error
-                _state.update { it.copy(relay = it.relay.copy(busy = false, message = application.getString(R.string.direct_check_failed))) }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                showDirectAccessCheckFailure()
             }
         }
+    }
+
+    private fun showDirectAccessCheckFailure() {
+        val message = getApplication<Application>().getString(R.string.direct_check_failed)
+        _state.update { it.copy(relay = it.relay.copy(busy = false, message = message)) }
     }
 
     private suspend fun startLanRediscoveryLoop() {
@@ -1104,10 +1111,7 @@ class AndroidHomeViewModel internal constructor(
                         localHost = if (outcome.profile.localHost != profile.localHost) outcome.profile.localHost else current.localHost,
                     )
                 repository.saveProfile(updated.copy(advertisedEndpoints = updated.stableAdvertisedEndpoints()))
-                if (profile.id == state.value.selectedProfileId) {
-                    if (!outcome.profile.permissions.terminal && terminalCoordinator.hasActiveSession) terminalCoordinator.close()
-                    if (!outcome.profile.permissions.sftp && sftpCoordinator.hasActiveSession) sftpCoordinator.close()
-                }
+                closeDisallowedHostSessions(profile.id, outcome.profile.permissions)
             }
 
             LanHostSyncOutcome.HostUnlinked -> {
@@ -1126,6 +1130,15 @@ class AndroidHomeViewModel internal constructor(
                 Unit
             }
         }
+    }
+
+    private fun closeDisallowedHostSessions(
+        profileId: DeviceProfileId,
+        permissions: DevicePermissions,
+    ) {
+        if (profileId != state.value.selectedProfileId) return
+        if (!permissions.terminal && terminalCoordinator.hasActiveSession) terminalCoordinator.close()
+        if (!permissions.sftp && sftpCoordinator.hasActiveSession) sftpCoordinator.close()
     }
 
     private suspend fun unlinkRevokedHost(profile: DeviceProfile) {

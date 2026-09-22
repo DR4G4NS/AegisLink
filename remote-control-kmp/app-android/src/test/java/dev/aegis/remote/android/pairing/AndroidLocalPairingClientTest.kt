@@ -28,6 +28,15 @@ class AndroidLocalPairingClientTest {
     }
 
     @Test
+    fun defaultsToHttpsPortAndRejectsInvalidPorts() {
+        assertEquals("https://127.0.0.1:443", normalizeLocalPairingBaseUrl("127.0.0.1").toString())
+        for (port in listOf(0, 65_536)) {
+            assertFailsWith<IllegalArgumentException> { normalizeLocalPairingBaseUrl("https://127.0.0.1:$port") }
+        }
+        assertFailsWith<IllegalArgumentException> { normalizeLocalPairingBaseUrl("https:///missing-host") }
+    }
+
+    @Test
     fun rejectsCleartextPublicHostsAndUnexpectedUrlComponents() {
         assertFailsWith<IllegalArgumentException> { normalizeLocalPairingBaseUrl("http://127.0.0.1:48291") }
         assertFailsWith<IllegalArgumentException> { normalizeLocalPairingBaseUrl("http://8.8.8.8:48291") }

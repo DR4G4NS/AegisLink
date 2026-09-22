@@ -664,7 +664,13 @@ internal fun DeviceActionCard(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
-        Text(subtitle, color = if (enabled) OnyxColors.OnSurfaceVariant else OnyxColors.Outline, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+        Text(
+            subtitle,
+            color = if (enabled) OnyxColors.OnSurfaceVariant else OnyxColors.Outline,
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

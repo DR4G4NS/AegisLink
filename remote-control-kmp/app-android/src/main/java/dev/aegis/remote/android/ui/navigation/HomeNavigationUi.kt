@@ -447,7 +447,14 @@ internal fun AppHeader(
         AlertDialog(
             onDismissRequest = { showLanguageDialog = false },
             containerColor = OnyxColors.ContainerHigh,
-            title = { Text(stringResource(R.string.language_dialog_title), color = OnyxColors.OnSurfaceStrong, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+            title = {
+                Text(
+                    stringResource(R.string.language_dialog_title),
+                    color = OnyxColors.OnSurfaceStrong,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     LanguageChoice(stringResource(R.string.language_system)) {

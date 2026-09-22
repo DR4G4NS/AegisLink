@@ -432,19 +432,10 @@ internal fun normalizeLocalPairingBaseUrl(
         "Local pairing URL must not contain credentials, a query, or a fragment"
     }
     require(uri.path.isNullOrBlank() || uri.path == "/") { "Local pairing URL must not contain a path" }
-    val host = uri.host ?: throw IllegalArgumentException("Local pairing URL is missing a host")
-    val port =
-        when {
-            uri.port in 1..65_535 -> uri.port
-            uri.port != -1 -> throw IllegalArgumentException("Local pairing URL has an invalid port")
-            scheme == "https" -> 443
-            else -> 80
-        }
-    if (scheme == "http") {
-        require(host.equals("localhost", ignoreCase = true) || host.isNumericIpLiteral()) {
-            "HTTP local pairing requires a numeric LAN address or localhost"
-        }
-    }
+    val host = requireNotNull(uri.host) { "Local pairing URL is missing a host" }
+    require(uri.port == -1 || uri.port in 1..65_535) { "Local pairing URL has an invalid port" }
+    // HTTPS is required above; an absent port always resolves to its standard port.
+    val port = if (uri.port == -1) 443 else uri.port
     val addresses =
         runCatching { InetAddress.getAllByName(host).toList() }
             .getOrElse { error -> throw IllegalArgumentException("Could not resolve the desktop pairing host", error) }
@@ -456,8 +447,6 @@ internal fun normalizeLocalPairingBaseUrl(
     }
     return URI(scheme, null, host, port, null, null, null)
 }
-
-private fun String.isNumericIpLiteral(): Boolean = contains(':') || matches(Regex("[0-9.]+"))
 
 private fun isAllowedLocalAddress(address: InetAddress): Boolean {
     if (address.isAnyLocalAddress || address.isMulticastAddress) return false

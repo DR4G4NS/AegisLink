@@ -3663,8 +3663,18 @@ private fun DirectAccessGuideCard(state: DesktopAgentState) {
         )
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            PillButton(t("direct.simple"), { publicGuide = false }, if (!publicGuide) ButtonVariant.Primary else ButtonVariant.Secondary, modifier = Modifier.weight(1f))
-            PillButton(t("direct.public"), { publicGuide = true }, if (publicGuide) ButtonVariant.Primary else ButtonVariant.Secondary, modifier = Modifier.weight(1f))
+            PillButton(
+                t("direct.simple"),
+                { publicGuide = false },
+                if (!publicGuide) ButtonVariant.Primary else ButtonVariant.Secondary,
+                modifier = Modifier.weight(1f),
+            )
+            PillButton(
+                t("direct.public"),
+                { publicGuide = true },
+                if (publicGuide) ButtonVariant.Primary else ButtonVariant.Secondary,
+                modifier = Modifier.weight(1f),
+            )
         }
         Spacer(Modifier.height(16.dp))
         Text(

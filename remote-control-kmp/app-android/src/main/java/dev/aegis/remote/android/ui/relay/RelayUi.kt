@@ -175,6 +175,80 @@ import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 
 @Composable
+private fun RelayDiagnosticSummary(
+    profile: DeviceProfile,
+    relay: RelayUiState,
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = OnyxColors.ContainerLow),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(stringResource(R.string.relay_target_computer), color = OnyxColors.OnSurfaceVariant, fontSize = 12.sp)
+            Text(
+                profile.relayDeviceId?.value
+                    ?: relay.pcRelayDeviceId.takeIf { it.isNotBlank() }
+                    ?: stringResource(R.string.not_configured),
+                color =
+                    if (profile.relayDeviceId == null &&
+                        relay.pcRelayDeviceId.isBlank()
+                    ) {
+                        OnyxColors.Error
+                    } else {
+                        OnyxColors.OnSurface
+                    },
+                fontFamily = FontFamily.Monospace,
+                fontSize = 13.sp,
+            )
+            relay.lastSessionId?.let {
+                val status =
+                    stringResource(
+                        if (relay.lastSessionApproved) R.string.relay_session_approved else R.string.relay_session_waiting,
+                    )
+                Text(
+                    stringResource(R.string.relay_last_session, it, status),
+                    color = OnyxColors.Primary,
+                    fontSize = 13.sp,
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
+            if (relay.turnUrls.isNotEmpty()) {
+                Text(
+                    stringResource(R.string.relay_backup_servers, relay.turnUrls.joinToString()),
+                    color = OnyxColors.OnSurfaceVariant,
+                    fontSize = 13.sp,
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
+            relay.turnCredentialRef?.let {
+                Text(
+                    stringResource(R.string.relay_turn_protected, it),
+                    color = OnyxColors.OnSurfaceVariant,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
+            relay.turnCredentialsExpiresAtEpochMillis?.let {
+                Text(
+                    stringResource(R.string.relay_turn_expires, it),
+                    color = OnyxColors.Primary,
+                    fontSize = 13.sp,
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
+            relay.message?.let {
+                Text(
+                    it.localizedStatusMessage(),
+                    color = if (relay.registered) OnyxColors.OnSurfaceVariant else OnyxColors.Error,
+                    fontSize = 13.sp,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun LegacyConnectionSettings(
     profile: DeviceProfile,
     relay: RelayUiState,
@@ -185,73 +259,7 @@ private fun LegacyConnectionSettings(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = OnyxColors.ContainerLow),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(stringResource(R.string.relay_target_computer), color = OnyxColors.OnSurfaceVariant, fontSize = 12.sp)
-                Text(
-                    profile.relayDeviceId?.value
-                        ?: relay.pcRelayDeviceId.takeIf { it.isNotBlank() }
-                        ?: stringResource(R.string.not_configured),
-                    color =
-                        if (profile.relayDeviceId == null &&
-                            relay.pcRelayDeviceId.isBlank()
-                        ) {
-                            OnyxColors.Error
-                        } else {
-                            OnyxColors.OnSurface
-                        },
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 13.sp,
-                )
-                relay.lastSessionId?.let {
-                    val status =
-                        stringResource(
-                            if (relay.lastSessionApproved) R.string.relay_session_approved else R.string.relay_session_waiting,
-                        )
-                    Text(
-                        stringResource(R.string.relay_last_session, it, status),
-                        color = OnyxColors.Primary,
-                        fontSize = 13.sp,
-                        fontFamily = FontFamily.Monospace,
-                    )
-                }
-                if (relay.turnUrls.isNotEmpty()) {
-                    Text(
-                        stringResource(R.string.relay_backup_servers, relay.turnUrls.joinToString()),
-                        color = OnyxColors.OnSurfaceVariant,
-                        fontSize = 13.sp,
-                        fontFamily = FontFamily.Monospace,
-                    )
-                }
-                relay.turnCredentialRef?.let {
-                    Text(
-                        stringResource(R.string.relay_turn_protected, it),
-                        color = OnyxColors.OnSurfaceVariant,
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace,
-                    )
-                }
-                relay.turnCredentialsExpiresAtEpochMillis?.let {
-                    Text(
-                        stringResource(R.string.relay_turn_expires, it),
-                        color = OnyxColors.Primary,
-                        fontSize = 13.sp,
-                        fontFamily = FontFamily.Monospace,
-                    )
-                }
-                relay.message?.let {
-                    Text(
-                        it.localizedStatusMessage(),
-                        color = if (relay.registered) OnyxColors.OnSurfaceVariant else OnyxColors.Error,
-                        fontSize = 13.sp,
-                    )
-                }
-            }
-        }
+        RelayDiagnosticSummary(profile, relay)
         OnyxTextField(stringResource(R.string.relay_url_required), relay.relayUrl) {
             dispatch(AndroidHomeAction.UpdateRelayDraft(relay.copy(relayUrl = it, message = null)))
         }

@@ -79,3 +79,31 @@ signature results, route/candidate pair, causal error codes, timestamps, test
 row, outcome, and sanitized log references. Never retain QR capabilities,
 private keys, passwords, tokens, E2EE plaintext, traffic keys, device serials,
 MAC addresses, or full authorization values.
+
+## Public-launch preparation — 2026-09-21
+
+The source launch preserves the release gates above. During launch preparation:
+
+- GitHub workflow syntax and expressions passed `actionlint` 1.7.12.
+- PowerShell parsing passed for developer packaging and the new shared OpenSSH
+  preparation script.
+- The OpenSSH preparation script verified the pinned cached upstream archive,
+  re-extracted it, and found all three required server tools. An isolated corrupt
+  cache fixture was rejected before extraction.
+- A signed-release manifest fixture covered all five distributed files,
+  including the APK and both SBOM formats; every checksum recomputed, and a
+  second run correctly excluded the manifest itself.
+- Windows CI, local packaging, and signed release now use the same OpenSSH
+  preparation script. The signed job supplies its verified directory to Inno
+  Setup, validates all signing configuration, and cleans temporary keys even
+  when a step fails.
+- CodeQL and dependency review no longer suppress workflow failures. Linux
+  packages require successful prerequisite checks.
+- Public documentation links, MIT package licensing, and Linux package license
+  metadata were aligned with AegisLink. Local QA logs and machine configuration
+  are excluded from the public export.
+
+These checks validate source and release tooling. No production signing keys
+were configured or generated, no signed binary release was produced, and the
+physical installer/device/network matrices remain open. The release procedure
+and required environment values are in [RELEASE.md](RELEASE.md).

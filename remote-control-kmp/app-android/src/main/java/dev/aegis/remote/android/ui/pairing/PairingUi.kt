@@ -247,9 +247,15 @@ internal fun AddProfileForm(
                 Button(
                     onClick = { dispatch(AndroidHomeAction.UpdateDraft(draft.copy(authMethod = method))) },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (draft.authMethod == method) OnyxColors.PrimaryContainer else OnyxColors.ContainerHigh),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = if (draft.authMethod == method) OnyxColors.PrimaryContainer else OnyxColors.ContainerHigh,
+                        ),
                 ) {
-                    Text(stringResource(if (method == AuthMethod.Password) R.string.field_ssh_password else R.string.field_ssh_private_key), textAlign = TextAlign.Center)
+                    Text(
+                        stringResource(if (method == AuthMethod.Password) R.string.field_ssh_password else R.string.field_ssh_private_key),
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }

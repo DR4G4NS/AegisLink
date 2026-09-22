@@ -23,7 +23,7 @@ See [production readiness](remote-control-kmp/docs/PRODUCTION_READINESS.md) for 
 
 ## Evidence
 
-Local launch preparation passed Android and desktop compilation, Android debug unit tests and desktop unit tests. Desktop screens were rendered with isolated test state to inspect alignment; no physical Android device was connected for this pass.
+Local launch preparation passed Android and desktop compilation, Detekt, ktlint and 133 unit tests (114 Android, 19 desktop; no failures). The final Android UI error boundary was rechecked after review. Desktop screens were rendered with isolated test state to inspect alignment; no physical Android device was connected for this pass.
 
 The clean source export passed Gitleaks 8.30.1 with no findings. Release workflows passed actionlint 1.7.12 and the changed PowerShell scripts passed parser validation. The pinned OpenSSH archive was verified and extracted successfully.
 
